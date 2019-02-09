@@ -6,7 +6,7 @@
 exports.port = 8000;
 
 //serverIp for parsing of custom avatars, put your server's ip here
-exports.serverIp = '';
+exports.serverIp = 'pokethunder';
 
 /**
  * The server address - the address at which Pokemon Showdown should be hosting
@@ -524,6 +524,17 @@ exports.grouplist = [
 		emote: true,
 		psgo: true,
 		ssb: true,
+	},
+	{
+	symbol: '⚔',
+	id: "captain",
+	name: "Captain",
+	inherit: '@',
+	jurisdiction: 'u',
+	makeroom: true,
+	masspm: true, 
+	declare: true,
+	editshop: true,
 	},
 	{
 		symbol: '#',
