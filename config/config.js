@@ -535,6 +535,7 @@ exports.grouplist = [
 	masspm: true, 
 	declare: true,
 	editshop: true,
+		editroom: true,
 	},
 	{
 		symbol: '#',
