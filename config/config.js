@@ -536,6 +536,9 @@ exports.grouplist = [
 	declare: true,
 	editshop: true,
 		editroom: true,
+		icon: true,
+		avatar: true,
+		gdeclare: true,
 	},
 	{
 		symbol: '#',
