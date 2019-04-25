@@ -122,8 +122,8 @@ exports.commands = {
 	},
 
 	slotshelp: [
-		`Slots is a Casino game that awards the user with varying amount of ${moneyPlural} depending on the streak of Pokemon the user gets.
-		/slots spin - Spins the Slot Machine. Requires 3 ${moneyPlural}.
+		`Slots is a Casino game that awards the user with varying amount of ${currencyPlural} depending on the streak of Pokemon the user gets.
+		/slots spin - Spins the Slot Machine. Requires 3 ${currencyPlural}.
 		/slots rewards - Lists the rewards for getting specific Pokemon streaks.
 		/slots help - Displays the list of Slot-related commands.`,
 	],
