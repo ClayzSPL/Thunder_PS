@@ -368,7 +368,7 @@ exports.commands = {
 		if (!this.can("mute", null, room)) return false;
 		let targetUser = Users.get(target);
 		if (!targetUser || !targetUser.connected) return this.errorReply(`User "${targetUser}" was not found.`);
-		room.addRaw(`${WL.nameColor(user.name, true, true)} has splatted ${Server.nameColor(targetUser, true, true)}.`);
+		room.addRaw(`${WL.nameColor(user.name, true, true)} has splatted ${WL.nameColor(targetUser, true, true)}.`);
 		targetUser.popup("You were splatted by the Aerospray PG.");
 	},
 
@@ -377,7 +377,7 @@ exports.commands = {
 		if (!this.can("mute", null, room)) return false;
 		let targetUser = Users.get(target);
 		if (!targetUser || !targetUser.connected) return this.errorReply(`User "${targetUser}" was not found.`);
-		room.addRaw(`${Server.nameColor(user.name, true, true)} has burned  ${Server.nameColor(target, true, true)} (Better put some ice on that).`);
+		room.addRaw(`${WL.nameColor(user.name, true, true)} has burned  ${WL.nameColor(target, true, true)} (Better put some ice on that).`);
 		targetUser.popup("My nigga you just got roasted.");
 	},
 
@@ -386,7 +386,7 @@ exports.commands = {
 		if (!this.can("mute", null, room)) return false;
 		let targetUser = Users.get(target);
 		if (!targetUser || !targetUser.connected) return this.errorReply(`User "${targetUser}" was not found.`);
-		room.addRaw(`${Server.nameColor(user.name, true, true)} has told ${Server.nameColor(target, true, true)} to get their shit together.`);
+		room.addRaw(`${WL.nameColor(user.name, true, true)} has told ${WL.nameColor(target, true, true)} to get their shit together.`);
 		targetUser.popup("Nigga Behave!");
 	},
 
@@ -395,7 +395,7 @@ exports.commands = {
 		if (!this.can("mute", null, room)) return false;
 		let targetUser = Users.get(target);
 		if (!targetUser || !targetUser.connected) return this.errorReply(`User "${targetUser}" was not found.`);
-		room.addRaw(`${Server.nameColor(user.name, true, true)} has hunted ${Server.nameColor(target, true, true)} for the booty.`);
+		room.addRaw(`${WL.nameColor(user.name, true, true)} has hunted ${WL.nameColor(target, true, true)} for the booty.`);
 		targetUser.popup("( ͡° ͜ʖ ͡°)Gimme That Booty( ͡° ͜ʖ ͡°)");
 	},
 
@@ -404,7 +404,7 @@ exports.commands = {
 		if (!this.can("mute", null, room)) return false;
 		let targetUser = Users.get(target);
 		if (!targetUser || !targetUser.connected) return this.errorReply(`User "${targetUser}" was not found.`);
-		room.addRaw(`${Server.nameColor(user.name, true, true)} has once again failed to notice ${Server.nameColor(targetUser, true, true)}.`);
+		room.addRaw(`${WL.nameColor(user.name, true, true)} has once again failed to notice ${WL.nameColor(targetUser, true, true)}.`);
 		targetUser.popup("Senpai gives no shits about you.");
 	},
 
@@ -413,7 +413,7 @@ exports.commands = {
 		if (!this.can("mute", null, room)) return this.errorReply("kids like you should be burning in hell");
 		let targetUser = Users.get(target);
 		if (!targetUser || !targetUser.connected) return this.errorReply(`User "${targetUser}" was not found.`);
-		room.addRaw(`${Server.nameColor(targetUser, true, true)} felt their sins crawling on their back.`);
+		room.addRaw(`${WL.nameColor(targetUser, true, true)} felt their sins crawling on their back.`);
 		targetUser.popup(`Do you want to have a bad time?`);
 	},
 
