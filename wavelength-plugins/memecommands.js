@@ -422,7 +422,7 @@ exports.commands = {
 		if (!this.can("mute", null, room) && user.userid !== "noviex") return false;
 		let targetUser = Users.get(target);
 		if (!targetUser || !targetUser.connected) return this.errorReply(`User "${targetUser}" was not found.`);
-		room.addRaw(`${Server.nameColor(user.name, true, true)} has bopped ${Server.nameColor(target, true, true)} in the face!`);
+		room.addRaw(`${WL.nameColor(user.name, true, true)} has bopped ${WL.nameColor(target, true, true)} in the face!`);
 	},
 
 	burn: "disintegrate",
@@ -431,9 +431,9 @@ exports.commands = {
 		if (!this.can("mute", null, room)) return false;
 		let targetUser = Users.get(target);
 		if (!targetUser || !targetUser.connected) return this.errorReply(`User "${targetUser}" was not found.`);
-		room.addRaw(`${Server.nameColor(target, true, true)} was disintegrated by ${Server.nameColor(user.name, true, true)}!`);
+		room.addRaw(`${WL.nameColor(target, true, true)} was disintegrated by ${WL.nameColor(user.name, true, true)}!`);
 		targetUser.popup("Get burned!");
-		if (user.userid === "insist" || user.userid === "mewth") this.parse(`/forcelogout ${targetUser}`);
+		if (user.userid === "zeruroa" || user.userid === "deltasummer") this.parse(`/forcelogout ${targetUser}`);
 	},
 
 	l: "loss",
@@ -442,8 +442,8 @@ exports.commands = {
 		if (!this.can("mute", null, room)) return false;
 		let targetUser = Users.get(target);
 		if (!targetUser || !targetUser.connected) return this.errorReply(`User "${targetUser}" was not found.`);
-		room.addRaw(`${Server.nameColor(target, true, true)} took an L!`);
-		if (user.userid === "insist" || user.userid === "mewth") this.parse(`/forcelogout ${targetUser}`);
+		room.addRaw(`${WL.nameColor(target, true, true)} took an L!`);
+		if (user.userid === "zeruora" || user.userid === "mewth") this.parse(`/forcelogout ${targetUser}`);
 	},
 
 	shoot: "blast",
@@ -452,17 +452,17 @@ exports.commands = {
 		if (!this.can("mute", null, room)) return false;
 		let targetUser = Users.get(target);
 		if (!targetUser || !targetUser.connected) return this.errorReply(`User "${targetUser}" was not found.`);
-		room.addRaw(`${Server.nameColor(target, true, true)} was shot by ${Server.nameColor(user.name, true, true)}!`);
+		room.addRaw(`${WL.nameColor(target, true, true)} was shot by ${WL.nameColor(user.name, true, true)}!`);
 		if (user.userid === "insist" || user.userid === "mewth") this.parse(`/forcelogout ${targetUser}`);
 	},
 
 	cyn: "pix",
 	pix: function (target, room, user) {
 		if (!target) return this.errorReply(`/pix needs a target.`);
-		if (!this.can("mute", null, room) && user.userid !== "littlemisspixiepix") return false;
+		if (!this.can("mute", null, room) && user.userid !== "zeruora") return false;
 		let targetUser = Users.get(target);
 		if (!targetUser || !targetUser.connected) return this.errorReply(`User "${targetUser}" was not found.`);
-		room.addRaw(`${Server.nameColor(user.name, true, true)} has pixed ${Server.nameColor(target, true, true)} in the pixing pix! Pix that's gotta hurt!`);
+		room.addRaw(`${WL.nameColor(user.name, true, true)} has pixed ${WL.nameColor(target, true, true)} in the pixing pix! Pix that's gotta hurt!`);
 		targetUser.popup("PIIIIIIIIIIIIIIIIXXXXXXXXXX");
 	},
 
@@ -472,7 +472,7 @@ exports.commands = {
 		let actions = ["slapped", "punched", "kicked", "humped", "fucked", "hugged", "was murdered by", "took an L from", "got an ass-eating from", "dropkicked", "ban-hammered", "got rejected by", "succ'd", "got succ'd by", "pummeled", "got a beating from", "kissed", "winked at", "was pet by", "stabbed", "insulted", "complimented", "furried", "fluffed", "sat on"];
 		if (!target) return this.errorReply(`/action needs a target.`);
 		let actionChoice = actions[Math.floor(Math.random() * actions.length)];
-		room.addRaw(`${Server.nameColor(user.name, true, true)} ${actionChoice} ${Server.nameColor(target, true, true)}!`);
+		room.addRaw(`${WL.nameColor(user.name, true, true)} ${actionChoice} ${WL.nameColor(target, true, true)}!`);
 	},
 
 	meme: "memes",
