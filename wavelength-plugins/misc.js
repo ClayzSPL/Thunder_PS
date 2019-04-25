@@ -1,9 +1,7 @@
 /**
  * Miscellaneous commands
  *
- * Fixed/Improved upon by: The Run, HoeenHero, Mystifi and Lord Haji.
- * Some of this code was borrowed from panpawn/jd/other contributors; as
- * such, credits go to them as well.
+*
  * @license MIT license
  */
 'use strict';
@@ -50,6 +48,18 @@ function clearRoom(room) {
 }
 
 exports.commands = {
+	arlert: 'alert',	
+	alert: function(target, room, user) {
+		if (!this.can('declare')) return false;
+		target = this.splitTarget(target);
+		var targetUser = this.targetUser;
+		if (!target || !targetUser) return this.sendReply("/alert user, message: Sends a popup to a user. Requires &~");
+		if (!targetUser || !targetUser.connected) return this.sendReply("User '" + this.targetUsername + "' does not exist.");
+		msg = Tools.escapeHTML(user.name) + " has sent you an alert (" + new Date().toUTCString() + "): " + target;
+		if (target.length > 500) return this.sendReply("ERROR - alert is too long.");
+		if (!targetUser.connected) return this.sendReply(targetUser + " not found.  Check spelling?");
+		targetUser.popup(msg);
+	},
 	useroftheweek: "uotw",
 	uotw: function (target, room, user) {
 		if (toId(target.length) >= 19) return this.errorReply("Usernames have to be 18 characters or less");
