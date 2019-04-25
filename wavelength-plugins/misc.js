@@ -50,6 +50,105 @@ function clearRoom(room) {
 }
 
 exports.commands = {
+	useroftheweek: "uotw",
+	uotw: function (target, room, user) {
+		if (toId(target.length) >= 19) return this.errorReply("Usernames have to be 18 characters or less");
+		if (!this.can("mute", null, room)) return false;
+		if (!room.chatRoomData) return;
+		if (!target) {
+			if (!this.runBroadcast()) return;
+			if (!room.chatRoomData.user) return this.errorReply("The User of the Week has not been set.");
+			return this.sendReplyBox(`The current <strong>User of the Week</strong> is: ${Server.nameColor(room.chatRoomData.user, true)}`);
+		}
+		if (this.meansNo(target)) {
+			if (!room.chatRoomData.user) return this.errorReply("The User of the Week has already been reset.");
+			delete room.chatRoomData.user;
+			this.sendReply(`The User of the Week was reset by ${Server.nameColor(user.name, true)}.`);
+			this.addModAction(`UOTW Reset: ${user.name} reset the User of the Week.`);
+			Rooms.global.writeChatRoomData();
+			return;
+		}
+		room.chatRoomData.user = Chat.escapeHTML(target);
+		Rooms.global.writeChatRoomData();
+		room.addRaw(`<div class="broadcast-green"><strong>The User of the Week is: ${Server.nameColor(room.chatRoomData.user, true)}.</strong></div>`);
+		this.addModAction(`${user.name} updated the User of the Week to "${room.chatRoomData.user}".`);
+	},
+	useroftheweekhelp: "uotwhelp",
+	uotwhelp: [
+		`/uotw - View the current User of the Week.
+		/uotw [user] - Set the User of the Week. Requires: % or higher.`,
+	],
+
+	etour: function (target) {
+		if (!target) return this.parse("/help etour");
+		this.parse(`/tour create ${target}, elimination`);
+	},
+	etourhelp: ["/etour [format] - Creates an elimination tournament."],
+
+	rtour: function (target) {
+		if (!target) return this.parse("/help rtour");
+		this.parse(`/tour create ${target}, roundrobin`);
+	},
+	rtourhelp: ["/rtour [format] - Creates a round robin tournament."],
+
+	autovoice: "autorank",
+	autodriver: "autorank",
+	automod: "autorank",
+	autoowner: "autorank",
+	autopromote: "autorank",
+	autorank: function (target, room, user, connection, cmd) {
+		switch (cmd) {
+		case "autovoice":
+			target = "+";
+			break;
+		case "autodriver":
+			target = "%";
+			break;
+		case "automod":
+			target = "@";
+			break;
+		case "autoleader":
+			target = "&";
+			break;
+		case "autoowner":
+			target = "#";
+			break;
+		}
+
+		if (!target) return this.parse("/autorankhelp");
+		if (!this.can("roommod", null, room)) return false;
+		if (room.isPersonal) return this.errorReply("Autorank is not currently a feature in groupchats.");
+		target = target.trim();
+
+		if (this.meansNo(target) && room.autorank) {
+			delete room.autorank;
+			delete room.chatRoomData.autorank;
+			Rooms.global.writeChatRoomData();
+			for (let u in room.users) Users(u).updateIdentity();
+			return this.privateModAction(`(${user.name} has disabled autorank in this room.)`);
+		}
+		if (room.autorank && room.autorank === target) return this.errorReply(`Autorank is already set to "${target}".`);
+
+		if (Config.groups[target] && !Config.groups[target].globalonly) {
+			if (target === "#" && user.userid !== room.founder) return this.errorReply("You can't set autorank to # unless you're the room founder.");
+			room.autorank = target;
+			room.chatRoomData.autorank = target;
+			Rooms.global.writeChatRoomData();
+			for (let u in room.users) Users(u).updateIdentity();
+			return this.privateModAction(`(${user.name} has set autorank to "${target}" in this room.)`);
+		}
+		return this.errorReply(`Group "${target}" not found.`);
+	},
+	autorankhelp: ["/autorank [rank] - Automatically promotes user to the specified rank when they join the room."],
+
+	bonus: "dailybonus",
+	checkbonus: "dailybonus",
+	dailybonus: function (target, room, user) {
+		let nextBonus = Date.now() - Db.DailyBonus.get(user.userid, [1, Date.now()])[1];
+		if ((86400000 - nextBonus) <= 0) return Server.giveDailyReward(user.userid, user);
+		return this.errorReply(`Your next bonus is ${(Db.DailyBonus.get(user.userid, [1, Date.now()])[0] === 8 ? 7 : Db.DailyBonus.get(user.userid, [1, Date.now()])[0])} ${(Db.DailyBonus.get(user.userid, [1, Date.now()])[0] === 1 ? moneyName : moneyPlural)} in ${Chat.toDurationString(Math.abs(86400000 - nextBonus))}`);
+	},
+
 	clearall: function (target, room, user) {
 		if (!this.can('lockdown')) return false;
 		if (room.battle) return this.sendReply("You cannot clearall in battle rooms.");
@@ -168,32 +267,47 @@ exports.commands = {
 	credits: function (target, room, user) {
 		let popup = "|html|" + "<font size=5 color=#0066ff><u><b>Wavelength Credits</b></u></font><br />" +
 			"<br />" +
-			"<u><b>Server Maintainers:</u></b><br />" +
-			"- " + WL.nameColor('Desokoro', true) + " (Owner, Sysadmin, Policy Admin, Server Host)<br />" +
-			"- " + WL.nameColor('HoeenHero', true) + " (Owner, Sysadmin, Technical Admin)<br />" +
+			"<u><b>Wl Maintainers:</u></b><br />" +
+			"- " + WL.nameColor('Light 2.2', true) + " (Developer, Policy Administrator)<br />" +
+			"- " + WL.nameColor('HoeenHero', true) + " (Owner, Policy Head, Developer)<br />" +
 			"<br />" +
 			"<u><b>Major Contributors:</b></u><br />" +
-			"- " + WL.nameColor('CubsFan38', true) + " (Community Admin)<br />" +
-			"- " + WL.nameColor('Kraken Mare', true) + " (Community Admin, Development)<br />" +
-			"- " + WL.nameColor('MechSteelix', true) + " (Policy Leader)<br/>" +
-			"- " + WL.nameColor('Electric Z', true) + " (Policy Admin)<br />" +
-			"- " + WL.nameColor('Opple', true) + " (Community Leader)<br />" +
-			"- " + WL.nameColor('Perison', true) + " (Community Admin)<br/>" +
-			"- " + WL.nameColor('Volco', true) + " (Technical Leader, Development)<br />" +
-			"<br />" +
-			"<u><b>Contributors:</b></u><br />" +
-			"- " + WL.nameColor('Ashley the Pikachu', true) + " (Spriting, Digimon Project)<br />" +
-			"- " + WL.nameColor('Insist', true) + " (Development)<br />" +
-			"- " + WL.nameColor('SSBN-640', true) + " (Development)<br />" +
-			"- " + WL.nameColor('wgc', true) + " (Development)<br />" +
-			"<br />" +
-			"<u><b>Retired Staff:</b></u><br />" +
-			"- " + WL.nameColor('Mystifi', true) + " (Former Owner, Sysadmin and Technical Admin)<br />" +
-			"<br />" +
+			"- " + WL.nameColor('Zefras', true) + " (Developer)<br />" +
+			"- " + WL.nameColor('Delta (summer)', true) + " (Community Admin)<br />" +
 			"<u><b>Special Thanks:</b></u><br />" +
 			"- Our Staff Members<br />" +
 			"- Our Regular Users<br />";
 		user.popup(popup);
+	},
+	randomsurvey: "randsurvey",
+	randsurvey: function () {
+		let results = [
+			`/survey create What do you want to see added or updated in ${Config.serverName}?`,
+			`/survey create What's your most memorable experience on ${Config.serverName}?`,
+			`/survey create How much time do you spend on ${Config.serverName} daily?`,
+			`/survey create What is your favorite custom mechanic on ${Config.serverName}?`,
+			`/survey create Was ${Config.serverName} your first Pokemon Showdown side-server?`, //5
+			`/survey create Do you like the league system?`,
+			`/survey create Do you like the idea of us adding custom megas on ${Config.serverName} that you can use in regular formats? (OU, UU, Ubers, Etc)`,
+			`/survey create What was your worst experience so far on ${Config.serverName}?`,
+			`/survey create What's your favorite food?`,
+			`/survey create What's your favorite activity on a hot summer day?`, //10
+			`/survey create What's your favorite drink`,
+			`/survey create What's your favorite color?`,
+			`/survey create What's the most embarrassing thing that's ever happened to you in real life?`,
+			`/survey create Have you ever been banned/locked on main? (play.pokemonshowdown.com)`,
+			`/survey create Do you want to see more events on ${Config.serverName}?`, //15
+		];
+		return this.parse(results[Math.floor(Math.random() * results.length)]);
+	},
+"!m8b": true,
+	helixfossil: "m8b",
+	helix: "m8b",
+	magic8ball: "m8b",
+	m8b: function () {
+		if (!this.runBroadcast()) return;
+		let results = ["Signs point to yes.", "Yes.", "Reply hazy, try again.", "Without a doubt.", "My sources say no.", "As I see it, yes.", "You may rely on it.", "Concentrate and ask again.", "Outlook not so good.", "It is decidedly so.", "Better not tell you now.", "Very doubtful.", "Yes - definitely.", "It is certain.", "Cannot predict now.", "Most likely.", "Ask again later.", "My reply is no.", "Outlook good.", "Don't count on it."];
+		return this.sendReplyBox(results[Math.floor(Math.random() * results.length)]);
 	},
 
 	rk: 'kick',
@@ -516,31 +630,7 @@ exports.commands = {
 	},
 	enableintroscrollhelp: ["/enableintroscroll [room] - Enables scroll bar preset in the room's roomintro."],
 
-	'!wlssb': true,
-	wlssb: function (target, room, user) {
-		if (!this.runBroadcast()) return false;
-		if (!target || target === 'help') return this.parse('/help wlssb');
-		let targetData = getMonData(toId(target));
-		if (['km', 'callie', 'krakenmeme'].includes(toId(target))) return this.sendReplyBox(getMonData('krakenmare'));
-		if (toId(target) === 'c7') return this.sendReplyBox(getMonData('c733937123'));
-		if (['des', 'deso'].includes(toId(target))) return this.sendReplyBox(getMonData('desokoro'));
-		if (['mos', 'electricz'].includes(toId(target))) return this.sendReplyBox(getMonData('mosmero'));
-		if (['perison', 'prince', 'peri'].includes(toId(target))) return this.sendReplyBox(getMonData('wavelengthprince'));
-		if (toId(target) === 'hiro') return this.sendReplyBox(getMonData('hiroz'));
-		if (['hh', 'hoeen'].includes(toId(target))) return this.sendReplyBox(getMonData('hoeenhero'));
-		if (toId(target) === 'arrays') return this.sendReplyBox(getMonData('volco'));
-		if (['mech', 'isteelx'].includes(toId(target))) return this.sendReplyBox(getMonData('mechsteelix'));
-		if (toId(target) === 'cubs') return this.sendReplyBox(getMonData('cubsfan38'));
-		if (toId(target) === 'bunnery') return this.sendReplyBox(getMonData('bunnery5'));
-		if (toId(target) === 'rittz') return this.sendReplyBox(getMonData('therittz'));
-		if (['stk', 'stabby'].includes(toId(target))) return this.sendReplyBox(getMonData('stabbythekrabby'));
-		if (['twb', 'tidal'].includes(toId(target))) return this.sendReplyBox(getMonData('tidalwavebot'));
-		if (['ssbn', 'lycaniumz', 'vxn'].includes(toId(target))) return this.sendReplyBox(getMonData('ssbn640'));
-		if (!targetData) return this.errorReply("The staffmon '" + toId(target) + "' could not be found.");
-		return this.sendReplyBox(targetData);
-	},
-	wlssbhelp: ["/wlssb (staffmon name) - Gives details on a staffmon from WLSSB."],
-
+	
 	pmroom: 'rmall',
 	roompm: 'rmall',
 	rmall: function (target, room, user) {
@@ -572,12 +662,7 @@ exports.commands = {
 	},
 	forcejoinhelp: ["/forcejoin [target], [room] - Forces a user to join a room"],
 
-	'!discord': true,
-	discord: function () {
-		if (!this.runBroadcast()) return;
-		this.sendReplyBox("<a href=\"https://discord.gg/cwfAqdN\">The Official Wavelength Discord</a>");
-	},
-
+	
 	ac: 'autoconfirm',
 	autoconfirm: function (target, room, user) {
 		if (!this.can('lockdown')) return;
