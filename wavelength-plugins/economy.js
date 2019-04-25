@@ -8,6 +8,55 @@ const DEFAULT_AMOUNT = 0;
 
 global.currencyName = 'Stardust';
 global.currencyPlural = 'Stardust';
+let shop = [
+	["Ability", "Purchases a custom ability for your SSBFFA account.", 50],
+	["Avatar", "Buys an custom avatar to be applied to your name [You supply. Images larger than 80x80 may not show correctly].", 5],
+	["Background", "Purchases a profile background. [Can be denied].", 25],
+	["Custom Color", "Changes the color of your name. [Can be denied].", 25],
+	["Custom Emoticon", "You provide an image (50x50 Pixels) to be added as an emote on the server. [Can be denied]", 40],
+	["Custom PM Box", "A Custom Designed Personal Messaging Box. [Can be denied]", 75],
+	["Custom Title", "Buys a title to be added on to your profile. [Can be denied].", 10],
+	["Declare", "Purchases a Global Declare to announce your message.", 15],
+	["FFA Symbol", "Purchases the ability to have a custom symbol for your SSBFFA Pokemon.", 15],
+	["Fix", "Buys the ability to alter your current custom avatar or trainer card.", 5],
+	["Icon", "Buy a custom icon that can be applied to the rooms you want. You must take into account that the provided image should be 32 x 32", 25],
+	["Item", "Purchases a custom item for your SSBFFA account.", 50],
+	["Kick", "Kick a user from the chatroom.", 5],
+	["League Room", "Purchases a room for league usage.", 5],
+	["Move", "Purchases a custom move for your SSBFFA account.", 50],
+	["Music", "Purchases profile music.", 25],
+	["POTD", "Allows you to change the Pokemon of the Day that shows up guaranteed in Random Battles [Can be refused, or held off if one is already active]", 25],
+	["Room", "Buys a chatroom for you to own. [Within reason, can be denied].", 30],
+	["Roomshop", "Buys a Roomshop for your League or Room. [Will be removed if abused].", 50],
+	["Shiny", "Purchases the ability for your SSBFFA Pokemon to become shiny.", 5],
+	["Staffmon", "Buys a Pokemon with your name on it to be added in the Super Staff Bros Metagame. [Can be denied/edited]", 100],
+	["Symbol", "Buys a custom symbol to go infront of your username and puts you at top of userlist. [Temporary until restart,certain symbols are blocked]", 5],
+];
+
+let shopDisplay = getShopDisplay(shop);
+
+/**
+ * Displays the shop
+ *
+ * @param {Array} shop
+ * @return {String} display
+ */
+function getShopDisplay(shop) {
+	let display = `<marquee style="background: #0000ff ; border: 10px solid red ; border-radius: 10px"><img src="https://play.pokemonshowdown.com/sprites/xyani/marshadow.gif"> ------- <img src="play.pokemonshowdown.com/sprites/xyani/marshadow.gif"></marquee><center><img src=https://play.pokemonshowdown.com/sprites/xyani/marshadow.gif><img src=https://images.cooltext.com/5282426.png width=300> <img src=https://play.pokemonshowdown.com/sprites/xyani/marshadow.gif></center><br /><div class="infobox-limited"><table style="background: #2ae10e; border-color: #2e6dd8; border-radius: 8px" border="1" cellspacing="0" cellpadding="5" width="100%"><tbody><tr><th><font color=#2e6dd8 face=courier>Item</font></th><th><font color=#2e6dd8 face=courier>Description</font></th><th><font color=#2e6dd8 face=courier>Price</font></th></tr>`;
+	let start = 0;
+	while (start < shop.length) {
+		display += `<tr>`;
+		display += `<td align="center"><button name="send" style="background: #0000ff; border-radius: 5px; border: solid, 1px, #2e6dd8; font-size: 11px; padding: 5px 10px" value="/buy ${shop[start][0]}"><font color="#FF0000" face=courier><strong>${shop[start][0]}</strong></font></button></td>`;
+		display += `<td align="center"><font color=#2e6dd8 face=courier>${shop[start][1]}</font></td>`;
+		display += `<td align="center"><font color=#2e6dd8 face=courier>${shop[start][2].toLocaleString()}</font></td>`;
+		display += `</tr>`;
+		display += `<marquee style="background: #0000ff ; border: 10px solid red ; border-radius: 10px"><img src="https://play.pokemonshowdown.com/sprites/xyani/marshadow.gif"> ------- <img src="play.pokemonshowdown.com/sprites/xyani/marshadow.gif"></marquee>`;
+		start++;
+	}
+	display += `</tbody></table></div><br><center><font color=#2ae10e face=courier>To buy an item from the shop, use /buy <em>Item</em>.</font></center>`;
+	display += `<marquee style="background: #0000ff ; border: 10px solid red ; border-radius: 10px"><img src="https://play.pokemonshowdown.com/sprites/xyani/marshadow.gif"> ------- <img src="play.pokemonshowdown.com/sprites/xyani/marshadow.gif"></marquee>`;
+	return display;
+}
 
 let Economy = global.Economy = {
 	/**
@@ -114,6 +163,11 @@ global.rankLadder = function (title, type, array, prop, group) {
 };
 
 exports.commands = {
+	store: "shop",
+	shop: function () {
+		if (!this.runBroadcast()) return;
+		return this.sendReplyBox(shopDisplay);
+	},
 	'!wallet': true,
 	atm: 'wallet',
 	wallet: function (target, room, user) {
