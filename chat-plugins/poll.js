@@ -61,7 +61,7 @@ class Poll {
 	}
 
 	generateVotes(num) {
-		let output = `<div class="infobox"><details><summary style="margin: 2px 0 5px 0"><span style="border:1px solid #6A6;color:#484;border-radius:4px;padding:0 3px"><i class="fa fa-bar-chart"></i> Poll-${this.pollArray[num].pollNum}</span> <strong style="font-size:11pt">${this.getQuestionMarkup(num)}</strong><psicon pokemon="espeon"></summary>`;
+		let output = `<div class="infobox"><details><summary style="margin: 2px 0 5px 0"><span style="border:1px solid #6A6;color:#484;border-radius:4px;padding:0 3px"><i class="fa fa-bar-chart"></i> Poll-${this.pollArray[num].pollNum}</span> <strong style="font-size:11pt">${this.getQuestionMarkup(num)}</strong><psicon pokemon="marshadow"></summary>`;
 		this.pollArray[num].options.forEach((option, number) => {
 			output += `<div style="margin-top: 5px"><button class="button" style="text-align: left" value="/poll vote ${number}, ${this.pollArray[num].pollNum}" name="send" title="Vote for ${number}. ${Chat.escapeHTML(option.name)}">${number}. <strong>${this.getOptionMarkup(option, num)}</strong></button></div>`;
 		});
