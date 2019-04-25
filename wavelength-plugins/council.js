@@ -38,13 +38,13 @@ function isCouncilMember(user) {
 	if (council === 1) return true; // Denies them as Council Member if they are suspended
 	return false;
 }
-Server.isCouncilMember = isCouncilMember;
+WL.isCouncilMember = isCouncilMember;
 
 let committee = {
 	// The name of the committee
 	name: "Perfected Pokemon",
 	// The owner(s) who can manage anything
-	owners: ["insist", "mewth"],
+	owners: ["zeruora"],
 	// VIPs of the committee who can manage anything unless suspended
 	vips: [],
 	// Forums link for the committee
