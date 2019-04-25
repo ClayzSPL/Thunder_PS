@@ -6,7 +6,7 @@
 exports.port = 8000;
 
 //serverIp for parsing of custom avatars, put your server's ip here
-exports.serverIp = 'pokethunder';
+exports.serverIp = 'lightvoid';
 
 /**
  * The server address - the address at which Pokemon Showdown should be hosting
