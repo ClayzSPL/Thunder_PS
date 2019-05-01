@@ -1,9 +1,9 @@
-WaveLength Server @ Pokémon Showdown
+Thunder Server @ Pokémon Showdown
 ========================================================================
 
-Navigation: [Wavelength][1] | [PS Server repository][10] | [PS Client repository][2] | [PS Dex repository][3]
+Navigation: [Thunder][1] | [PS Server repository][10] | [PS Client repository][2] | [PS Dex repository][3]
 
-  [1]: http://wavelength.psim.us/
+  [1]: http://thunderps.glitch.me-80.psim.us
   [2]: https://github.com/Zarel/Pokemon-Showdown-Client
   [3]: https://github.com/Zarel/Pokemon-Showdown-Dex
   [10]: https://github.com/Zarel/Pokemon-Showdown
@@ -18,13 +18,13 @@ Navigation: [Wavelength][1] | [PS Server repository][10] | [PS Client repository
 Introduction
 ------------------------------------------------------------------------
 
-This is the source code for the Pokémon Showdown server [Wavelength][4], a website for Pokémon battling. Pokémon Showdown simulates singles, doubles and triples battles in all the games out so far (Generations 1 through 7).
+This is the source code for the Pokémon Showdown server [Thunder][4], a website for Pokémon battling. Pokémon Showdown simulates singles, doubles and triples battles in all the games out so far (Generations 1 through 7).
 
 This repository contains the files needed to set up your own Pokémon Showdown server. The Wavelength server also comes with some custom additions not found on the main repo. This repo will still have all the features from the main server. Note that to set up a server, you'll also need a server computer.
 
 You can use your own computer as a server, but for other people to connect to your computer, you'll need to expose a port (default is 8000 but you can choose a different one) to connect to, which sometimes requires [port forwarding][5]. Note that some internet providers don't let you host a server at all, in which case you'll have to rent a VPS to use as a server.
 
-  [4]: http://wavelength.psim.us/
+  [4]: http://thunder.glitch.me-80.psim.us/
   [5]: http://en.wikipedia.org/wiki/Port_forwarding
 
 
@@ -42,7 +42,7 @@ Detailed installation instructions
 Pokémon Showdown requires you to have [Node.js][6] installed, 8.x or later (7.7 or later can work, but you might as well be on the latest stable).
 
 ```bash
-$ git clone https://github.com/HoeenCoder/Wavelength.git
+$ git clone https://github.com/BaneOfAll/Thunder_PS.git
 cd wavelength && npm install
 node app.js
 ```

@@ -46,7 +46,7 @@ exports.commands = {
 		display: 'view',
 		view: function (target, room, user) {
 			if (!this.runBroadcast()) return;
-			let output = `<center><strong>Wavelength News:</strong></center>${generateNews().join(`<hr>`)}${showSubButton(user.userid)}`;
+			let output = `<center><strong>Thunder News:</strong></center>${generateNews().join(`<hr>`)}${showSubButton(user.userid)}`;
 			if (this.broadcasting) return this.sendReplyBox(`<div class="infobox-limited">${output}</div>`);
 			return user.send(`|popup||wide||html|${output}`);
 		},
@@ -84,23 +84,23 @@ exports.commands = {
 		},
 		subscribe: function (target, room, user) {
 			if (!user.named) return this.errorReply('You must choose a name before subscribing');
-			if (Db.NewsSubscribers.has(user.userid)) return this.errorReply("You are alreading subscribing Wavelength News.");
+			if (Db.NewsSubscribers.has(user.userid)) return this.errorReply("You are alreading subscribing Thunder News.");
 			Db.NewsSubscribers.set(user.userid, true);
-			this.sendReply("You have subscribed Wavelength News.");
-			this.popupReply("|wide||html|You will receive Wavelength News automatically once you connect to the Wavelength next time.<br><hr><center><button class='button' name='send' value ='/news'>View News</button></center>");
+			this.sendReply("You have subscribed Thunder News.");
+			this.popupReply("|wide||html|You will receive Thunder News automatically once you connect to the Thunder next time.<br><hr><center><button class='button' name='send' value ='/news'>View News</button></center>");
 		},
 		unsubscribe: function (target, room, user) {
 			if (!user.named) return this.errorReply('You must choose a name before unsubscribing');
-			if (!Db.NewsSubscribers.has(user.userid)) return this.errorReply("You have not subscribed Wavelength News.");
+			if (!Db.NewsSubscribers.has(user.userid)) return this.errorReply("You have not subscribed Thunder News.");
 			Db.NewsSubscribers.remove(user.userid);
-			this.sendReply("You have unsubscribed Wavelength News.");
-			this.popupReply("|wide||html|You will no longer automatically receive Wavelength News.<br><hr><center><button class='button' name='send' value='/news'>View News</button></center>");
+			this.sendReply("You have unsubscribed Thunder News.");
+			this.popupReply("|wide||html|You will no longer automatically receive Thunder News.<br><hr><center><button class='button' name='send' value='/news'>View News</button></center>");
 		},
 	},
-	serverannouncementshelp: ["/news view - Views current Wavelength news.",
+	serverannouncementshelp: ["/news view - Views current Thunder news.",
 		"/news delete [news title] - Deletes announcement with the [title]. Requires @, &, ~",
 		"/news add [news title], [news desc] - Adds news [news]. Requires @, &, ~",
-		"/news subscribe - Subscribes to Wavelength News.",
-		"/news unsubscribe - Unsubscribes to Wavelength News.",
+		"/news subscribe - Subscribes to Thunder News.",
+		"/news unsubscribe - Unsubscribes to Thunder News.",
 	],
 };

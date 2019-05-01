@@ -275,11 +275,11 @@ exports.commands = {
 	showhelp: ["/show - Displays user's global rank. Requires: & ~"],
 
 	credits: function (target, room, user) {
-		let popup = "|html|" + "<font size=5 color=#0066ff><u><b>Wavelength Credits</b></u></font><br />" +
+		let popup = "|html|" + "<font size=5 color=#0066ff><u><b>Thunder Credits</b></u></font><br />" +
 			"<br />" +
-			"<u><b>Wl Maintainers:</u></b><br />" +
-			"- " + WL.nameColor('Light 2.2', true) + " (Developer, Policy Administrator)<br />" +
-			"- " + WL.nameColor('HoeenHero', true) + " (Owner, Policy Head, Developer)<br />" +
+			"<u><b>Thunder Maintainers:</u></b><br />" +
+			"- " + WL.nameColor('Light 2.2', true) + " (Tenichal Administrator, Owner, Developer)<br />" +
+			"- " + WL.nameColor('Zeruora', true) + " (Owner, Policy Head, Developer)<br />" +
 			"<br />" +
 			"<u><b>Major Contributors:</b></u><br />" +
 			"- " + WL.nameColor('Zefras', true) + " (Developer)<br />" +
@@ -436,15 +436,13 @@ exports.commands = {
 		return this.sendReplyBox('There ' + (names.length === 1 ? 'is' : 'are') + ' <font color="#24678d"><b>' + names.length + '</b></font> ' + (names.length === 1 ? 'user' : 'users') + ' with the rank <font color="#24678d"><b>' + Config.groups[target].name + '</b></font> currently online.<br />' + names.join(', '));
 	},
 
-	'!wavelengthrepo': true,
-	wl: 'wavelengthrepo',
-	wlr: 'wavelengthrepo',
-	repo: 'wavelengthrepo',
-	wavelengthrepo: function (target, room, user) {
+	'!thunderrepo': true,
+	repo: 'thunderrepo',
+	thunderrepo: function (target, room, user) {
 		if (!this.runBroadcast()) return;
-		this.sendReply(`|raw|<a href="https://github.com/HoeenCoder/Wavelength">Wavelength's repo</a>`);
+		this.sendReply(`|raw|<a href="https://github.com/BaneOfAll/Thunder_PS">Thunder's repo</a>`);
 	},
-	wavelengthrepohelp: ["/wavelengthrepo - Links to the Wavelength repository on Github."],
+	thunderrepohelp: ["/thunderrepo - Links to the Thunder repository on Github."],
 
 	'!seen': true,
 	seen: function (target, room, user) {
@@ -648,7 +646,7 @@ exports.commands = {
 		if (!target) return this.sendReply("/rmall [message] - Sends a pm to all users in the room.");
 		target = target.replace(/<(?:.|\n)*?>/gm, '');
 
-		let pmName = ' Wavelength Server';
+		let pmName = ' Thunder Server';
 
 		for (let i in room.users) {
 			let message = '|pm|' + pmName + '|' + room.users[i].getIdentity() + '| ' + target;
@@ -706,7 +704,7 @@ exports.commands = {
 	usercodes: function (target, room, user) {
 		if (!this.can('lockdown')) return;
 		let out = `<div style="max-height: 300px; overflow: scroll">`;
-		let keys = Db.userType.keys(), codes = {3: 'Wavelength Sysop', 4: 'Autoconfirmed', 5: 'Permalocked', 6: 'Permabanned'};
+		let keys = Db.userType.keys(), codes = {3: 'Thunder Sysop', 4: 'Autoconfirmed', 5: 'Permalocked', 6: 'Permabanned'};
 		for (let i = 0; i < keys.length; i++) {
 			out += `<b>${keys[i]}</b>: ${codes[Db.userType.get(keys[i])]}${(i + 1) === keys.length ? `` : `,<br/>`}`;
 		}
