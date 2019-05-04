@@ -39,6 +39,7 @@
  *
  * @license MIT
  */
+
 'use strict';
 
 // NOTE: This file intentionally doesn't use too many modern JavaScript
@@ -94,12 +95,33 @@ if (Config.watchconfig) {
 /*********************************************************
  * Set up most of our globals
  *********************************************************/
+// Custom Globals
 
-global.WL = {};
+global.Server = {};
 
-global.Db = require('nef')(require('nef-fs')('config/db'));
+global.Server = require('./Server.js').Server;
 
-global.Monitor = require('./monitor');
+global.serverName = Config.serverName;
+
+//replace URL with your MongoDB Url.
+//https://mongodb.com provide free MobgoDB Hosting ( 512MB ).
+//global.Db = require('nef')(require('nef-mongo')('URL'));
+
+// Store data locally ( Disable local storage, If you want to use cloud storage. )
+const nef = require('nef');
+const nefFs = require('nef-fs');
+global.Db = nef(nefFs('./config/Db'));
+
+// Sqlite3 Databse for REGIONS.
+global.sqlite3 = require('sqlite3');
+
+// Additional Database  ( Remove this, if you don't want to use additional database )
+global.Ad = require('origindb')('./config/Ad');
+
+// Make Console global for SGgame
+global.Console = require('./console.js');
+
+// Custom Globals End
 
 global.Dex = require('./sim/dex');
 global.toId = Dex.getId;
@@ -112,19 +134,18 @@ global.Users = require('./users');
 
 global.Punishments = require('./punishments');
 
-global.WL = require('./WL.js').WL;
 global.Chat = require('./chat');
+
 global.Rooms = require('./rooms');
+
+global.Ontime = {};
 
 global.Tells = require('./tells.js');
 
-delete process.send; // in case we're a child process
 global.Verifier = require('./verifier');
 Verifier.PM.spawn();
 
 global.Tournaments = require('./tournaments');
-
-global.Ontime = {};
 
 global.Dnsbl = require('./dnsbl');
 Dnsbl.loadDatacenters();
@@ -145,8 +166,8 @@ if (Config.crashguard) {
 
 global.Sockets = require('./sockets');
 
-exports.listen = function (port, bindAddress, workerCount) {
-	Sockets.listen(port, bindAddress, workerCount);
+exports.listen = function (port, bindaddress, workerCount) {
+	Sockets.listen(port, bindaddress, workerCount);
 };
 
 if (require.main === module) {
@@ -165,10 +186,6 @@ if (require.main === module) {
 global.TeamValidatorAsync = require('./team-validator-async');
 TeamValidatorAsync.PM.spawn();
 
-/*********************************************************
- * Start up the githubhook server
- ********************************************************/
-require('./github');
 /*********************************************************
  * Start up the REPL server
  *********************************************************/

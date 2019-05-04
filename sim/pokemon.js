@@ -6,6 +6,8 @@
  */
 'use strict';
 
+const Server = require('./Server.js').Server;
+
 /**
  * An object representing a Pokemon's move
  *
@@ -26,11 +28,13 @@ class Pokemon {
 	 * @param {string | AnyObject} set
 	 * @param {Side} side
 	 */
-	constructor(set, side) {
+	constructor(set, side, slot) {
 		/**@type {Side} */
 		this.side = side;
 		/**@type {Battle} */
 		this.battle = side.battle;
+
+		this.slot = slot;
 
 		let pokemonScripts = this.battle.data.Scripts.pokemon;
 		if (pokemonScripts) Object.assign(this, pokemonScripts);
@@ -181,6 +185,10 @@ class Pokemon {
 		if (this.gender === 'N') this.gender = '';
 		this.happiness = typeof set.happiness === 'number' ? this.battle.clampIntRange(set.happiness, 0, 255) : 255;
 		this.pokeball = this.set.pokeball || 'pokeball';
+		// SGgame
+		if (this.battle.getFormat().useSGgame) this.exp = this.set.exp || Server.calcExp(this.speciesid, this.level);
+		this.slot = (!slot && slot !== 0 ? this.side.pokemon.length - 1 : slot);
+
 
 		this.fullname = this.side.id + ': ' + this.name;
 		this.details = this.species + (this.level === 100 ? '' : ', L' + this.level) + (this.gender === '' ? '' : ', ' + this.gender) + (this.set.shiny ? ', shiny' : '');
@@ -312,8 +320,6 @@ class Pokemon {
 
 		// OMs
 
-		/**@type {string | undefined} */
-		this.innate = undefined;
 		/**@type {string | undefined} */
 		this.originalSpecies = undefined;
 		/**@type {?boolean} */
@@ -461,23 +467,6 @@ class Pokemon {
 		}
 		return speed & 0x1FFF;
 	}
-
-	/**
-	 * Commented out for now until a use for Combat Power is found in Let's Go
-	 *
-	getCombatPower() {
-		let statSum = 0;
-		let awakeningSum = 0;
-		for (let stat in this.stats) {
-			// @ts-ignore
-			statSum += this.calculateStat(stat, this.boosts[stat]);
-			// @ts-ignore
-			awakeningSum += this.calculateStat(stat, this.boosts[stat]) + this.dex.getAwakeningValues(this.set, stat);
-		}
-		let combatPower = Math.floor(Math.floor(statSum * this.level * 6 / 100) + (Math.floor(awakeningSum) * Math.floor((this.level * 4) / 100 + 2)));
-		return this.battle.clampIntRange(combatPower, 0, 10000);
-	}
-	 */
 
 	getWeight() {
 		let weight = this.template.weightkg;
@@ -1253,8 +1242,7 @@ class Pokemon {
 			if (sourceEffect && sourceEffect.status === this.status) {
 				this.battle.add('-fail', this, this.status);
 			} else if (sourceEffect && sourceEffect.status) {
-				this.battle.add('-fail', source);
-				this.battle.attrLastMove('[still]');
+				this.battle.add('-fail', this);
 			}
 			return false;
 		}
@@ -1263,7 +1251,7 @@ class Pokemon {
 			// the game currently never ignores immunities
 			if (!this.runStatusImmunity(status.id === 'tox' ? 'psn' : status.id)) {
 				this.battle.debug('immune to status');
-				if (sourceEffect && sourceEffect.status) this.battle.add('-immune', this);
+				if (sourceEffect && sourceEffect.status) this.battle.add('-immune', this, '[msg]');
 				return false;
 			}
 		}
@@ -1327,7 +1315,8 @@ class Pokemon {
 
 			this.battle.singleEvent('Eat', item, this.itemData, this, source, sourceEffect);
 			this.battle.runEvent('EatItem', this, null, null, item);
-
+			// SGgame
+			if (this.battle.getFormat().takeItems) this.battle.send('takeitem', toId(this.side.name) + "|" + toId(this.item) + "|" + this.slot + "|1");
 			this.lastItem = this.item;
 			this.item = '';
 			this.itemData = {id: '', target: this};
@@ -1363,6 +1352,8 @@ class Pokemon {
 			}
 
 			this.battle.singleEvent('Use', item, this.itemData, this, source, sourceEffect);
+			// SGgame
+			if (this.battle.getFormat().takeItems) this.battle.send('takeitem', toId(this.side.name) + "|" + toId(this.item) + "|" + this.slot + "|1");
 
 			this.lastItem = this.item;
 			this.item = '';
@@ -1511,7 +1502,7 @@ class Pokemon {
 		}
 		if (!this.runStatusImmunity(status.id)) {
 			this.battle.debug('immune to volatile status');
-			if (sourceEffect && sourceEffect.status) this.battle.add('-immune', this);
+			if (sourceEffect && sourceEffect.status) this.battle.add('-immune', this, '[msg]');
 			return false;
 		}
 		result = this.battle.runEvent('TryAddVolatile', this, source, sourceEffect, status);
@@ -1740,7 +1731,7 @@ class Pokemon {
 			isGrounded = this.isGrounded(!negateResult);
 			if (isGrounded === null) {
 				if (message) {
-					this.battle.add('-immune', this, '[from] ability: Levitate');
+					this.battle.add('-immune', this, '[msg]', '[from] ability: Levitate');
 				}
 				return false;
 			}
@@ -1748,7 +1739,7 @@ class Pokemon {
 		if (!negateResult) return true;
 		if ((isGrounded === undefined && !this.battle.getImmunity(type, this)) || isGrounded === false) {
 			if (message) {
-				this.battle.add('-immune', this);
+				this.battle.add('-immune', this, '[msg]');
 			}
 			return false;
 		}
@@ -1769,7 +1760,7 @@ class Pokemon {
 		if (!this.battle.getImmunity(type, this)) {
 			this.battle.debug('natural status immunity');
 			if (message) {
-				this.battle.add('-immune', this);
+				this.battle.add('-immune', this, '[msg]');
 			}
 			return false;
 		}
@@ -1777,7 +1768,7 @@ class Pokemon {
 		if (!immunity) {
 			this.battle.debug('artificial status immunity');
 			if (message && immunity !== null) {
-				this.battle.add('-immune', this);
+				this.battle.add('-immune', this, '[msg]');
 			}
 			return false;
 		}

@@ -671,22 +671,6 @@ class ModdedDex {
 		return nature;
 	}
 	/**
-	 * @param {PokemonSet} set
-	 * @param {string} [statName]
-	 */
-	getAwakeningValues(set, statName) {
-		if (typeof statName === 'string') statName = toId(statName);
-		/** @type {StatsTable} */
-		let avs = {hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0};
-		for (let ev in set.evs) {
-			// @ts-ignore
-			avs[ev] = set.evs[ev];
-		}
-		// @ts-ignore
-		if (typeof statName === 'string' && statName in avs) return avs[statName];
-		return avs;
-	}
-	/**
 	 * Given a table of base stats and a pokemon set, return the actual stats.
 	 * @param {StatsTable} baseStats
 	 * @param {PokemonSet} set
@@ -705,15 +689,15 @@ class ModdedDex {
 			let stat = baseStats['hp'];
 			modStats['hp'] = Math.floor(Math.floor(2 * stat + set.ivs['hp'] + Math.floor(set.evs['hp'] / 4) + 100) * set.level / 100 + 10);
 		}
-		return this.natureModify(modStats, set);
+		return this.natureModify(modStats, set.nature);
 	}
 	/**
 	 * @param {StatsTable} stats
-	 * @param {PokemonSet} set
+	 * @param {string | AnyObject} nature
 	 * @return {StatsTable}
 	 */
-	natureModify(stats, set) {
-		let nature = this.getNature(set.nature);
+	natureModify(stats, nature) {
+		nature = this.getNature(nature);
 		// @ts-ignore
 		if (nature.plus) stats[nature.plus] = Math.floor(stats[nature.plus] * 1.1);
 		// @ts-ignore
@@ -1213,9 +1197,12 @@ class ModdedDex {
 				buf += '|';
 			}
 
-			if (set.pokeball || set.hpType) {
+			if (set.pokeball || set.hpType || set.exp || set.ot) {
 				buf += ',' + set.hpType;
 				buf += ',' + toId(set.pokeball);
+				// SGgame
+				buf += ',' + set.exp || '0';
+				buf += ',' + set.ot || '';
 			}
 		}
 
@@ -1316,6 +1303,7 @@ class ModdedDex {
 					spe: ivs[5] === '' ? 31 : Number(ivs[5]) || 0,
 				};
 			}
+			if (!set.ivs) set.ivs = {hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31};
 			i = j + 1;
 
 			// shiny
@@ -1328,20 +1316,23 @@ class ModdedDex {
 			j = buf.indexOf('|', i);
 			if (j < 0) return null;
 			if (i !== j) set.level = parseInt(buf.substring(i, j));
+			if (!set.level) set.level = 100;
 			i = j + 1;
 
 			// happiness
 			j = buf.indexOf(']', i);
 			let misc;
 			if (j < 0) {
-				if (i < buf.length) misc = buf.substring(i).split(',', 3);
+				if (i < buf.length) misc = buf.substring(i).split(',', 5);
 			} else {
-				if (i !== j) misc = buf.substring(i, j).split(',', 3);
+				if (i !== j) misc = buf.substring(i, j).split(',', 5);
 			}
 			if (misc) {
 				set.happiness = (misc[0] ? Number(misc[0]) : 255);
 				set.hpType = misc[1];
 				set.pokeball = misc[2];
+				set.exp = Number(misc[3]);
+				set.ot = misc[4];
 			}
 			if (j < 0) break;
 			i = j + 1;

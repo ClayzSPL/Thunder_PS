@@ -236,7 +236,7 @@ interface EventMethods {
 	onModifyDef?: (this: Battle, def: number, pokemon: Pokemon) => number | void
 	onModifyMove?: (this: Battle, move: ActiveMove, pokemon: Pokemon, target: Pokemon) => void
 	onModifyPriority?: (this: Battle, priority: number, pokemon: Pokemon, target: Pokemon, move: ActiveMove) => number | void
-	onModifySecondaries?: (this: Battle, secondaries: SecondaryEffect[], target: Pokemon, source: Pokemon, move: ActiveMove) => void
+	onModifySecondaries?: (this: Battle, secondaries: SecondaryEffect[]) => void
 	onModifySpA?: (this: Battle, atk: number, attacker: Pokemon, defender: Pokemon, move: ActiveMove) => number | void
 	onModifySpD?: (this: Battle, spd: number, pokemon: Pokemon) => number | void
 	onModifySpe?: (this: Battle, spe: number, pokemon: Pokemon) => number | void
@@ -755,10 +755,8 @@ interface ModdedBattleSide {
 
 interface ModdedBattlePokemon {
 	boostBy?: (this: Pokemon, boost: SparseBoostsTable) => boolean
-	calculateStat?: (this: Pokemon, statName: string, boost: number, modifier?: number) => number
 	getActionSpeed?: (this: Pokemon) => number
 	getStat?: (this: Pokemon, statName: string, unboosted?: boolean, unmodified?: boolean) => number
-	getWeight?: (this: Pokemon) => number
 	isGrounded?: (this: Pokemon, negateImmunity: boolean | undefined) => boolean | null
 	modifyStat?: (this: Pokemon, statName: string, modifier: number) => void
 	moveUsed?: (this: Pokemon, move: Move, targetLoc?: number) => void
@@ -777,9 +775,7 @@ interface ModdedBattleScriptsData extends Partial<BattleScriptsData> {
 	getDamage?: (this: Battle, pokemon: Pokemon, target: Pokemon, move: string | number | ActiveMove, suppressMessages: boolean) => number
 	init?: (this: Battle) => void
 	modifyDamage?: (this: Battle, baseDamage: number, pokemon: Pokemon, target: Pokemon, move: ActiveMove, suppressMessages?: boolean) => void
-	natureModify?: (this: Battle, stats: StatsTable, set: PokemonSet) => StatsTable
 	setTerrain?: (this: Battle, status: string | Effect, source: Pokemon | null | undefined, sourceEffect: Effect | null | undefined) => boolean
-	spreadModify?: (this: Battle, baseStats: StatsTable, set: PokemonSet) => StatsTable
 
 	// oms
 	doGetMixedTemplate?: (this: Battle, template: Template, deltas: AnyObject) => Template

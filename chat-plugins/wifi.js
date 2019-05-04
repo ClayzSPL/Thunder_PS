@@ -1,4 +1,4 @@
-﻿/**
+/**
 * Wi-Fi chat-plugin. Only works in a room with id 'wifi'
 * Handles giveaways in the formats: question, lottery, gts
 * Written by bumbadadabum, based on the original plugin as written by Codelegend, SilverTactic, DanielCranham
@@ -635,7 +635,6 @@ class GtsGiveaway {
 		}
 		// @ts-ignore
 		delete this.room.gtsga;
-		return this.left;
 	}
 
 	// This currently doesn't match some of the edge cases the other pokemon matching function does account for (such as Type: Null). However, this should never be used as a fodder mon anyway, so I don't see a huge need to implement it.
@@ -716,7 +715,7 @@ let commands = {
 	},
 	guessanswer: 'guess',
 	guess: function (target, room, user) {
-		if (room.id !== 'games' && room.id !== 'lobby') return this.errorReply("You can't use this command here.");
+		if (room.id !== 'wifi') return this.errorReply("This command can only be used in the Wi-Fi room.");
 		if (!this.canTalk()) return;
 		// @ts-ignore
 		if (!room.giveaway) return this.errorReply("There is no giveaway going on at the moment.");
@@ -805,8 +804,8 @@ let commands = {
 			// @ts-ignore
 			room.gtsga = new GtsGiveaway(room, targetUser, amount, summary, deposit, lookfor);
 
-			this.privateModAction(`(${user.name} started a GTS giveaway for ${targetUser.name} with ${amount} Pokémon)`);
-			this.modlog('GTS GIVEAWAY', null, `for ${targetUser.getLastId()} with ${amount} Pokémon`);
+			this.privateModAction(`(${user.name} started a GTS giveaway for ${targetUser.name})`);
+			this.modlog('GTS GIVEAWAY', null, `for ${targetUser.getLastId()}`);
 		},
 		left: function (target, room, user) {
 			if (room.id !== 'wifi') return false;
@@ -866,16 +865,16 @@ let commands = {
 				return this.errorReply("The reason is too long. It cannot exceed 300 characters.");
 			}
 			// @ts-ignore
-			const amount = room.gtsga.end(true);
+			room.gtsga.end(true);
+			this.modlog('GTS END', null, target);
 			if (target) target = `: ${target}`;
-			this.modlog('GTS END', null, `with ${amount} left${target}`);
-			this.privateModAction(`(The giveaway was forcibly ended by ${user.name} with ${amount} left${target})`);
+			this.privateModAction(`(The giveaway was forcibly ended by ${user.name}${target})`);
 		},
 	},
 	// general.
 	ban: function (target, room, user) {
 		if (!target) return false;
-		if (room.id !== 'serverevents' && room.id !== 'lobby') return this.errorReply("This command can only be used in the Wi-Fi room.");
+		if (room.id !== 'wifi') return this.errorReply("This command can only be used in the Wi-Fi room.");
 		if (!this.can('warn', null, room)) return false;
 
 		target = this.splitTarget(target, false);
@@ -895,7 +894,7 @@ let commands = {
 	},
 	unban: function (target, room, user) {
 		if (!target) return false;
-		if (room.id !== 'serverevents' && room.id !== 'lobby') return this.errorReply("This command can only be used in the Wi-Fi room.");
+		if (room.id !== 'wifi') return this.errorReply("This command can only be used in the Wi-Fi room.");
 		if (!this.can('warn', null, room)) return false;
 
 		this.splitTarget(target, false);
@@ -955,7 +954,7 @@ let commands = {
 	},
 	'': 'help',
 	help: function (target, room, user) {
-		if (room.id !== 'serverevents' && room.id !== 'lobby') return this.errorReply("This command can only be used in the Wi-Fi room.");
+		if (room.id !== 'wifi') return this.errorReply("This command can only be used in the Wi-Fi room.");
 
 		let reply = '';
 		switch (target) {

@@ -653,9 +653,11 @@ const commands = {
 
 	subroomgroupchat: 'makegroupchat',
 	makegroupchat: function (target, room, user, connection, cmd) {
-		if (!this.canTalk()) return;
 		if (!user.autoconfirmed) {
 			return this.errorReply("You must be autoconfirmed to make a groupchat.");
+		}
+		if (!user.trusted) {
+			return this.errorReply("You must be global voice or roomdriver+ in some public room to make a groupchat.");
 		}
 		if (cmd === 'subroomgroupchat') {
 			if (!user.can('mute', null, room)) return this.errorReply("You can only create subroom groupchats for rooms you're staff in.");
@@ -724,7 +726,7 @@ const commands = {
 			parentid: parent,
 			auth: {},
 			introMessage: `<h2 style="margin-top:0">${titleHTML}</h2><p>To invite people to this groupchat, use <code>/invite USERNAME</code> in the groupchat.<br /></p><p>This room will expire after 40 minutes of inactivity or when the server is restarted.</p><p style="margin-bottom:0"><button name="send" value="/roomhelp">Room management</button>`,
-			staffMessage: `<p>As creator of this groupchat, <u>you are entirely responsible for what occurs in this chatroom</u>. Global rules apply at all times.</p><p>If this room is used to break global rules or disrupt other areas of the server, <strong>you as the creator will be held accountable and punished</strong>.</p><p>Be cautious with who you invite.</p>`,
+			staffMessage: `<p>As creator of this groupchat, <u>you are entirely responsible for what occurs in this chatroom</u>. Global rules apply at all times.</p><p>If you have created this room for someone else, <u>you are still responsible</u> whether or not you choose to actively supervise the room.</p><p style="font-style:italic">For this reason, we strongly recommend that you only create groupchats for users you know and trust.</p><p>If this room is used to break global rules or disrupt other areas of the server, this will be considered irresponsible use of auth privileges on the part of the creator, and <b>you will be globally demoted and barred from public auth.</b></p>`,
 		});
 		if (targetRoom) {
 			// The creator is a Room Owner in subroom groupchats and a Host otherwise..
@@ -738,7 +740,7 @@ const commands = {
 		return this.errorReply(`An unknown error occurred while trying to create the room '${title}'.`);
 	},
 	makegroupchathelp: [
-		`/makegroupchat [roomname] - Creates an invite-only group chat named [roomname].`,
+		`/makegroupchat [roomname] - Creates an invite-only group chat named [roomname]. Requires global voice or roomdriver+ in a public room to make a groupchat.`,
 		`/subroomgroupchat [roomname] - Creates a subroom groupchat of the current room. Can only be used in a public room you have staff in.`,
 	],
 
@@ -833,10 +835,8 @@ const commands = {
 	secretroom: 'privateroom',
 	publicroom: 'privateroom',
 	privateroom: function (target, room, user, connection, cmd) {
-		if (room.isPersonal) {
+		if (room.battle || room.isPersonal) {
 			if (!this.can('editroom', null, room)) return;
-		} else if (room.battle) {
-			if (!this.can('editprivacy', null, room)) return;
 		} else {
 			// registered chatrooms show up on the room list and so require
 			// higher permissions to modify privacy settings
@@ -1339,7 +1339,12 @@ const commands = {
 		}
 		if (!user.can('makeroom')) {
 			if (currentGroup !== ' ' && !user.can('room' + (Config.groups[currentGroup] ? Config.groups[currentGroup].id : 'voice'), null, room)) {
-				return this.errorReply(`/${cmd} - Access denied for promoting/demoting from ${(Config.groups[currentGroup] ? Config.groups[currentGroup].name : "an undefined group")}.`);
+				if (user.userid !== room.founder) {
+					return this.errorReply(`/${cmd} - Access denied for promoting/demoting from ${(Config.groups[currentGroup] ? Config.groups[currentGroup].name : "an undefined group")}.`);
+				} else if (user.userid === userid) {
+					return this.errorReply(`/${cmd} - You cant demote yourself from room founder!`);
+				}/*
+				return this.errorReply(`/${cmd} - Access denied for promoting/demoting from ${(Config.groups[currentGroup] ? Config.groups[currentGroup].name : "an undefined group")}.`);*/
 			}
 			if (nextGroup !== ' ' && !user.can('room' + Config.groups[nextGroup].id, null, room)) {
 				return this.errorReply(`/${cmd} - Access denied for promoting/demoting to ${Config.groups[nextGroup].name}.`);
@@ -1395,7 +1400,7 @@ const commands = {
 		`/roompromote OR /roomdemote [username], [group symbol] - Promotes/demotes the user to the specified room rank. Requires: @ * # & ~`,
 		`/room[group] [username] - Promotes/demotes the user to the specified room rank. Requires: @ * # & ~`,
 		`/roomdeauth [username] - Removes all room rank from the user. Requires: @ * # & ~`,
-	],
+	], /*
 
 	'!roomauth': true,
 	roomstaff: 'roomauth',
@@ -1441,9 +1446,70 @@ const commands = {
 		} else if (curRoom.isPrivate === 'hidden' || curRoom.isPrivate === 'voice') {
 			buffer.push(`${curRoom.title} is a hidden room, so global auth with no relevant roomauth will have authority in this room.`);
 		}
+
+		if (targetRoom.founder) {
+			buffer.unshift(`${(targetRoom.founder ? `Room Founder:\n${Users(targetRoom.founder) && Users(targetRoom.founder).connected ? Server.nameColor(targetRoom.founder, true) : Server.nameColor(targetRoom.founder)}` : ``)}`);
+		}
+
 		if (targetRoom !== room) buffer.unshift(`${targetRoom.title} room auth:`);
 		connection.popup(`${buffer.join("\n\n")}${userLookup}`);
+	},*/
+	'!roomauth': true,
+	roomstaff: 'roomauth',
+	roomauth1: 'roomauth',
+	roomauth: function (target, room, user, connection, cmd) {
+		let userLookup = '';
+		if (cmd === 'roomauth1') userLookup = `\n\nTo look up auth for a user, use /userauth ${target}`;
+		let targetRoom = room;
+		if (target) targetRoom = Rooms.search(target);
+		if (!targetRoom || targetRoom.id === 'global' || !targetRoom.checkModjoin(user)) return this.errorReply(`The room "${target}" does not exist.`);
+		if (!targetRoom.auth) return this.sendReply(`/roomauth - The room '${targetRoom.title || target}' isn't designed for per-room moderation and therefore has no auth list.${userLookup}`);
+
+		let rankLists = {};
+		for (let u in targetRoom.auth) {
+			if (!rankLists[targetRoom.auth[u]]) rankLists[targetRoom.auth[u]] = [];
+			rankLists[targetRoom.auth[u]].push(u);
+		}
+
+		let buffer = Object.keys(rankLists).sort((a, b) =>
+			(Config.groups[b] || {rank: 0}).rank - (Config.groups[a] || {rank: 0}).rank
+		).map(r => {
+			let roomRankList = rankLists[r].sort();
+			roomRankList = roomRankList.map(s => s in targetRoom.users ? Server.nameColor(s, true) : Server.nameColor(s));
+			return `${Config.groups[r] ? `${Config.groups[r].name}s (${r})` : r}:\n${roomRankList.join(", ")}`;
+		});
+
+		if (!buffer.length) {
+			connection.popup(`The room '${targetRoom.title}' has no auth. ${userLookup}`);
+			return;
+		}
+		let curRoom = targetRoom;
+		while (curRoom.parent) {
+			const modjoinSetting = curRoom.modjoin === true ? curRoom.modchat : curRoom.modjoin;
+			const roomType = (modjoinSetting ? `modjoin ${modjoinSetting} ` : '');
+			const inheritedUserType = (modjoinSetting ? ` of rank ${modjoinSetting} and above` : '');
+			if (curRoom.parent) {
+				buffer.push(`${curRoom.title} is a ${roomType}subroom of ${curRoom.parent.title}, so ${curRoom.parent.title} users${inheritedUserType} also have authority in this room.`);
+			}
+			curRoom = curRoom.parent;
+		}
+
+		if (!curRoom.isPrivate) {
+			buffer.push(`${curRoom.title} is a public room, so global auth with no relevant roomauth will have authority in this room.`);
+		} else if (curRoom.isPrivate === 'hidden' || curRoom.isPrivate === 'voice') {
+			buffer.push(`${curRoom.title} is a hidden room, so global auth with no relevant roomauth will have authority in this room.`);
+		}
+
+		if (targetRoom.founder) {
+			buffer.unshift(`${(targetRoom.founder ? `Room Founder:\n${Users(targetRoom.founder) && Users(targetRoom.founder).connected ? Server.nameColor(targetRoom.founder, true) : Server.nameColor(targetRoom.founder)}` : ``)}`);
+		}
+
+		if (room.autorank) buffer.unshift(`Autorank is currently set to ${Config.groups[room.autorank].name} (${room.autorank})`);
+
+		if (targetRoom !== room) buffer.unshift(`${targetRoom.title} room auth:`);
+		connection.send(`|popup||html|${buffer.join("\n\n")}${userLookup}`);
 	},
+
 
 	'!userauth': true,
 	userauth: function (target, room, user, connection) {
@@ -2879,7 +2945,7 @@ const commands = {
 		if (!this.can('hotpatch')) return;
 
 		const lock = Monitor.hotpatchLock;
-		const hotpatches = ['chat', 'formats', 'loginserver', 'punishments', 'dnsbl', 'wavelength'];
+		const hotpatches = ['chat', 'formats', 'loginserver', 'punishments', 'dnsbl'];
 
 		try {
 			if (target === 'all') {
@@ -2902,10 +2968,13 @@ const commands = {
 
 				Chat.uncache('./chat');
 				Chat.uncache('./chat-commands');
+				Chat.uncacheDir('./custom-plugins');
+				Chat.uncache('./console');
+				Chat.uncacheDir('./game-cards');
+				Chat.uncache('./Server');
 				Chat.uncacheDir('./chat-plugins');
-				Chat.uncacheDir('./wavelength-plugins');
-				Chat.uncache('./WL');
-				global.WL = require('./WL').WL;
+				global.Server = require('./Server.js').Server;
+				global.Console = require('./console');
 				global.Chat = require('./chat');
 
 				let runningTournaments = Tournaments.tournaments;
@@ -3848,6 +3917,9 @@ const commands = {
 		if (!room.game || !room.game.timer) {
 			return this.errorReply(`You can only set the timer from inside a battle room.`);
 		}
+		// SGgame
+		if (toId(room.battle.format) === 'gen7wildpokemonalpha') return this.errorReply('You can\'t start the timer during a Wild Pokemon Encounter.');
+
 		const timer = room.game.timer;
 		if (!timer.timerRequesters) {
 			return this.sendReply(`This game's timer is managed by a different command.`);

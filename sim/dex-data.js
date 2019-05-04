@@ -299,7 +299,7 @@ class Format extends Effect {
 		 * random/fixed teams. null if players can bring teams.
 		 * @type {string | undefined}
 		 */
-		this.team = this.team;
+		this.team;
 		/** @type {'Format' | 'Ruleset' | 'Rule' | 'ValidatorRule'} */
 		// @ts-ignore
 		this.effectType = Tools.getString(this.effectType) || 'Format';
@@ -309,13 +309,10 @@ class Format extends Effect {
 		 */
 		this.debug = !!this.debug;
 		/**
-		 * Whether or not a format will update ladder points if searched
-		 * for using the "Battle!" button.
-		 * (Challenge and tournament games will never update ladder points.)
-		 * (Defaults to `true`.)
+		 * Whether or not a format is played for ladder points.
 		 * @type {boolean}
 		 */
-		this.rated = (this.rated !== false);
+		this.rated = !!this.rated;
 		/**
 		 * Game type.
 		 * @type {GameType}
@@ -398,10 +395,8 @@ class Format extends Effect {
 		/**
 		 * Forces all pokemon brought in to this level. Certain Game Freak
 		 * formats will change level 1 and level 100 pokemon to level 50,
-		 * which is what this does.
-		 *
-		 * You usually want maxForcedLevel instead, which will bring level
-		 * 100 pokemon down, but not level 1 pokemon up.
+		 * which is what you want here. You usually want maxForcedLevel
+		 * instead.
 		 * @type {number | undefined}
 		 */
 		this.forcedLevel = this.forcedLevel || undefined;
@@ -568,7 +563,7 @@ class Ability extends Effect {
 		 * Represents how useful or detrimental this ability is.
 		 * @type {number}
 		 */
-		this.rating = this.rating;
+		this.rating;
 
 		/**
 		 * Whether or not this ability suppresses weather.
@@ -677,7 +672,7 @@ class Template extends Effect {
 		 * Types
 		 * @type {string[]}
 		 */
-		this.types = this.types;
+		this.types;
 
 		/**
 		 * Added type (used in OMs)
@@ -764,19 +759,19 @@ class Template extends Effect {
 		 * Base stats
 		 * @type {StatsTable}
 		 */
-		this.baseStats = this.baseStats;
+		this.baseStats;
 
 		/**
 		 * Weight (in kg)
 		 * @type {number}
 		 */
-		this.weightkg = this.weightkg;
+		this.weightkg;
 
 		/**
 		 * Height (in m)
 		 * @type {number}
 		 */
-		this.heightm = this.heightm;
+		this.heightm;
 
 		/**
 		 * Color
@@ -900,13 +895,13 @@ class Move extends Effect {
 		 * Move base power.
 		 * @type {number}
 		 */
-		this.basePower = this.basePower;
+		this.basePower;
 
 		/**
 		 * Move base accuracy. True denotes a move that always hits
 		 * @type {true | number}
 		 */
-		this.accuracy = this.accuracy;
+		this.accuracy;
 
 		/**
 		 * Critical hit ratio. Defaults to 1.
@@ -918,19 +913,19 @@ class Move extends Effect {
 		 * Will this move always or never be a critical hit?
 		 * @type {boolean | undefined}
 		 */
-		this.willCrit = this.willCrit;
+		this.willCrit = this.willCrit || undefined;
 
 		/**
 		 * Is this move a critical hit?
 		 * @type {boolean | undefined}
 		 */
-		this.crit = this.crit;
+		this.crit = this.crit || undefined;
 
 		/**
 		 * Can this move OHKO foes?
 		 * @type {boolean | string | undefined}
 		 */
-		this.ohko = this.ohko;
+		this.ohko = this.ohko || undefined;
 
 		/**
 		 * Base move type. This is the move type as specified by the games,
@@ -965,7 +960,7 @@ class Move extends Effect {
 		 * Move category
 		 * @type {'Physical' | 'Special' | 'Status'}
 		 */
-		this.category = this.category;
+		this.category;
 
 		/**
 		 * Category that changes which defense to use when calculating
@@ -1022,7 +1017,7 @@ class Move extends Effect {
 		 * Base move PP.
 		 * @type {number}
 		 */
-		this.pp = this.pp;
+		this.pp;
 
 		/**
 		 * Whether or not this move can receive PP boosts.
@@ -1070,7 +1065,7 @@ class Move extends Effect {
 		 * Move damage against the current target
 		 * @type {string | number | boolean | undefined}
 		 */
-		this.damage = this.damage;
+		this.damage = this.damage || undefined;
 
 		/**
 		 * Whether or not this move hit multiple targets
@@ -1083,14 +1078,14 @@ class Move extends Effect {
 		 * are hit
 		 * @type {number | undefined}
 		 */
-		this.spreadModifier = this.spreadModifier;
+		this.spreadModifier = this.spreadModifier || undefined;
 
 		/**
 		 * Modifier that affects damage when this move is
 		 * a critical hit
 		 * @type {number | undefined}
 		 */
-		this.critModifier = this.critModifier;
+		this.critModifier = this.critModifier || undefined;
 
 		/**
 		 * Damage modifier based on the user's types

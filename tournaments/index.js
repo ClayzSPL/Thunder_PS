@@ -537,9 +537,6 @@ class Tournament {
 			return false;
 		}
 
-		user.tourBoost = false;
-		user.gameBoost = false;
-
 		this.disqualifiedUsers.set(player, true);
 		this.generator.setUserBusy(player, false);
 
@@ -915,7 +912,6 @@ class Tournament {
 		this.room.add(`|tournament|end|${JSON.stringify(update)}`);
 		this.isEnded = true;
 		if (this.autoDisqualifyTimer) clearTimeout(this.autoDisqualifyTimer);
-
 		//
 		// Tournament Winnings
 		//
@@ -943,7 +939,8 @@ class Tournament {
 			if (Db.userBadges.has(wid) && Db.userBadges.get(wid).indexOf('Tournament Champion') > -1) firstMoney = Math.ceil(firstMoney * 1.5);
 			if (Users(wid).tourBoost) firstMoney *= 2;
 			if (Users(wid).gameBoost) firstMoney *= 2;
-			let secondMoney = Math.round(firstMoney / 2);
+			let secondMoney = Math.round(tourSize / 4);
+			if (secondMoney < 1) secondMoney = 1;
 			if (runnerUp) {
 				if (Users(rid).tourBoost) secondMoney *= 2;
 				if (Users(rid).gameBoost) secondMoney *= 2;
@@ -957,6 +954,7 @@ class Tournament {
 					}
 					Economy.logTransaction(Chat.escapeHTML(winner) + ' has won ' + firstMoney + ' ' + (firstMoney === 1 ? global.currencyName : global.currencyPlural) + ' from a tournament.');
 				});
+				Server.ExpControl.addExp(wid, this.room, 10);
 			});
 			this.room.addRaw("<b><font color='" + color + "'>" + Chat.escapeHTML(winner) + "</font> has won " + "<font color='" + color + "'>" + firstMoney + " </font>" + (firstMoney === 1 ? global.currencyName : global.currencyPlural) + " for winning the tournament!</b>");
 
@@ -969,25 +967,24 @@ class Tournament {
 						Economy.logTransaction(Chat.escapeHTML(runnerUp) + ' has won ' + secondMoney + ' ' + (secondMoney === 1 ? global.currencyName : global.currencyPlural) + ' from a tournament.');
 					});
 				});
+				Server.ExpControl.addExp(rid, this.room, 5);
 				this.room.addRaw("<b><font color='" + color + "'>" + Chat.escapeHTML(runnerUp) + "</font> has won " + "<font color='" + color + "'>" + secondMoney + "</font>" + (firstMoney === 1 ? global.currencyName : global.currencyPlural) + " for winning the tournament!</b>");
 			}
 
-			if (WL.getFaction(winner)) {
+
+			/*if (WL.getFaction(winner)) {
 				let factionName = WL.getFaction(winner);
 				let factionId = toId(factionName);
 				Db.factionbank.set(factionId, Db.factionbank.get(factionId, 0) + 10);
 				this.room.addRaw(`<strong>Congratulations to ${factionName}! Your faction has gained 10 faction money! To view it type /faction bank atm (faction) </strong>`);
+			}*/
+			if ((tourSize >= sizeRequiredToEarn) && this.room.isOfficial) {
+			    Server.leagueTourPoints(toId(winner), toId(runnerUp), tourSize, this.room);
 			}
 		}
-
 		delete exports.tournaments[this.room.id];
 		delete this.room.game;
 		for (const i in this.players) {
-			if (this.room.isOfficial) {
-				Users(this.players[i].userid).tourBoost = false;
-				Users(this.players[i].userid).gameBoost = false;
-				WL.ExpControl.addExp(this.players[i].userid, this.room, 20);
-			}
 			this.players[i].destroy();
 		}
 	}
@@ -1012,7 +1009,6 @@ function createTournamentGenerator(generator, args, output) {
 	args.unshift(null);
 	return new (Generator.bind.apply(Generator, args))();
 }
-
 function createTournament(room, format, generator, playerCap, isRated, args, output) {
 	if (room.type !== 'chat') {
 		output.errorReply("Tournaments can only be created in chat rooms.");
@@ -1046,7 +1042,6 @@ function createTournament(room, format, generator, playerCap, isRated, args, out
 	room.game = exports.tournaments[room.id] = new Tournament(room, format, createTournamentGenerator(generator, args, output), playerCap, isRated);
 	return room.game;
 }
-
 function deleteTournament(id, output) {
 	const tournament = exports.tournaments[id];
 	if (!tournament) {
@@ -1059,7 +1054,6 @@ function deleteTournament(id, output) {
 	if (room) delete room.game;
 	return true;
 }
-
 function getTournament(id, output) {
 	if (exports.tournaments[id]) {
 		return exports.tournaments[id];
@@ -1343,30 +1337,6 @@ const commands = {
 			if (tournament.autoDisqualifyTimeout === Infinity) return this.errorReply("The automatic tournament disqualify timer is not set.");
 			tournament.runAutoDisqualify(this);
 			this.roomlog(`${user.name} used /tour runautodq`);
-		},
-		remind: function (tournament, user) {
-			let users = tournament.generator.getAvailableMatches().toString().split(',');
-			let offlineUsers = [];
-			for (let u = 0; u < users.length; u++) {
-				let targetUser = Users.get(users[u]);
-				if (!targetUser) {
-					offlineUsers.push(users[u]);
-					continue;
-				} else if (!targetUser.connected) {
-					offlineUsers.push(targetUser.userid);
-					continue;
-				} else {
-					let pmName = ' Tour Remind [Do not reply]';
-					let message = '|pm|' + pmName + '|' + user.getIdentity() + '|' + 'You have a tournament battle in the room "' + tournament.room.title + '". If you do not start soon you may be disqualified.';
-					targetUser.send(message);
-				}
-			}
-			if (tournament.isTournamentStarted) {
-				tournament.room.addRaw('<b>Players have been reminded of their tournament battles by ' + user.name + '.</b>');
-				if (offlineUsers.length > 0 && offlineUsers !== '') tournament.room.addRaw('<b>The following users are currently offline: ' + offlineUsers + '.</b>');
-			} else {
-				this.errorReply('The tournament hasen\'t started yet.');
-			}
 		},
 		scout: 'setscouting',
 		scouting: 'setscouting',

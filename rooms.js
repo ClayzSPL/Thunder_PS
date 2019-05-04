@@ -440,6 +440,11 @@ class GlobalRoom extends BasicRoom {
 				isPrivate: true,
 				staffRoom: true,
 				staffAutojoin: true,
+			}, {
+			    title: 'Development',
+			    isPrivate: true,
+			    staffRoom: true,
+			    staffAutojoin: true,
 			}];
 		}
 
@@ -843,6 +848,7 @@ class GlobalRoom extends BasicRoom {
 	onConnect(user, connection) {
 		let initdata = '|updateuser|' + user.name + '|' + (user.named ? '1' : '0') + '|' + user.avatar + '\n';
 		connection.send(initdata + this.configRankList + this.formatListText);
+		if (this.chatRooms.length > 2) connection.send('|queryresponse|rooms|null'); // should display room list
 	}
 	/**
 	 * @param {User} user
@@ -967,10 +973,6 @@ class GlobalRoom extends BasicRoom {
 	reportCrash(err, crasher = "The server") {
 		const time = Date.now();
 		if (time - this.lastReportedCrash < CRASH_REPORT_THROTTLE) {
-			const stackUS = (err ? Chat.escapeHTML(err.stack).split(`\n`).slice(0, 2).join(`.`) : ``);
-			const crashMessageUS = `**The server has crashed:** ${stackUS}`;
-			// @ts-ignore
-			WL.messageSeniorStaff(crashMessageUS, '~Wavelength Server');
 			return;
 		}
 		this.lastReportedCrash = time;
@@ -1029,10 +1031,6 @@ class BasicChatRoom extends BasicRoom {
 		/** @type {any} */
 		// TODO: strongly type polls
 		this.poll = null;
-
-		/** @type {any} */
-		// TODO: strongly type surveys
-		this.survey = null;
 
 		// room settings
 		this.desc = '';
@@ -1227,8 +1225,7 @@ class BasicChatRoom extends BasicRoom {
 		}
 		message += `</div>`;
 		if (this.introMessage) {
-			let scroll = Db.disabledScrolls.get(this.id, false);
-			message += `\n|raw|<div class="infobox infobox-roomintro"><div ${(!this.isOfficial && !scroll ? 'class="infobox-limited"' : '')}>` +
+			message += `\n|raw|<div class="infobox infobox-roomintro"><div ${(!this.isOfficial ? 'class="infobox-limited"' : '')}>` +
 				this.introMessage.replace(/\n/g, '') +
 				`</div></div>`;
 		}
@@ -1257,11 +1254,6 @@ class BasicChatRoom extends BasicRoom {
 		let userList = this.userList ? this.userList : this.getUserList();
 		this.sendUser(connection, '|init|chat\n|title|' + this.title + '\n' + userList + '\n' + this.log.getScrollback() + this.getIntroMessage(user));
 		if (this.poll) this.poll.onConnect(user, connection);
-		if (this.survey) {
-			for (let u = 0; u < this.survey.surveyArray.length; u++) {
-				if (this.survey.surveyArray[u]) this.survey.onConnect(user, connection, u);
-			}
-		}
 		if (this.game && this.game.onConnect) this.game.onConnect(user, connection);
 	}
 	/**
@@ -1308,16 +1300,7 @@ class BasicChatRoom extends BasicRoom {
 		} else {
 			this.reportJoin('n', user.getIdentity(this.id) + '|' + oldid);
 		}
-		if (this.poll) {
-			for (let u in this.poll.pollArray) {
-				if (user.userid in this.poll.pollArray[u].voters) this.poll.updateFor(user);
-			}
-		}
-		if (this.survey) {
-			for (let u in this.survey.surveyArray) {
-				if (this.survey.surveyArray[u] && user.userid in this.survey.surveyArray[u].repliers) this.survey.updateTo(user, u, false);
-			}
-		}
+		if (this.poll && user.userid in this.poll.voters) this.poll.updateFor(user);
 		return true;
 	}
 	/**
@@ -1655,12 +1638,6 @@ let Rooms = Object.assign(getRoom, {
 		if (p2) p2.joinRoom(room);
 		if (p1) Monitor.countBattle(p1.latestIp, p1.name);
 		if (p2) Monitor.countBattle(p2.latestIp, p2.name);
-		// @ts-ignore
-		if (p1 && p2 && Rooms.global.FvF && Rooms.global.FvF[toId(WL.getFaction(p1.userid))] && Rooms(Rooms.global.FvF[toId(WL.getFaction(p1.userid))].room).fvf.tier === formatid) {
-			// @ts-ignore
-			WL.isFvFBattle(p1.userid, p2.userid, roomid, 'start');
-		}
-
 		return room;
 	},
 

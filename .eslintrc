@@ -14,9 +14,10 @@
 	"globals": {
 		"Config": false, "Monitor": false, "toId": false, "Dex": false, "LoginServer": false,
 		"Users": false, "Punishments": false, "Rooms": false, "Verifier": false, "Chat": false,
-		"Tournaments": false, "Dnsbl": false, "Sockets": false, "TeamValidator": false, "Ladders": false,
-        "TeamValidatorAsync": false, "WL": false, "Tells": false, "Db": false, "Economy": false, "currencyName": false,
-        "currencyPlural": false, "writeSSB": false, "Ontime": false, "rankLadder": false,
+		"Tournaments": false, "Dnsbl": false, "Sockets": false, "TeamValidator": false,
+		"TeamValidatorAsync": false, "Ladders": false, "serverName": false, "Db": false, "Ad": false, "Server": false,
+		"currencyName": false, "currencyPlural": false, "sqlite3": false, "Economy": false, "rankLadder": false,
+		"Tells": false, "Ontime": false, "ExpControl": false, "Console": false
 	},
 	"extends": "eslint:recommended",
 	"rules": {
@@ -70,7 +71,7 @@
 		"no-sequences": "error",
 		"no-throw-literal": "error",
 		"no-unmodified-loop-condition": "error",
-		"no-unused-expressions": "error",
+		"no-unused-expressions": "off",
 		"no-useless-call": "error",
 		"no-useless-concat": "off",
 		"no-void": "off",
@@ -99,7 +100,7 @@
 		"no-path-concat": "off",
 		"no-process-env": "off",
 		"no-process-exit": "off",
-		"no-restricted-modules": ["error", "moment", "sugar"],
+		"no-restricted-modules": ["error", "moment", "request", "sugar"],
 		"no-sync": "off",
 
 		"array-bracket-spacing": ["error", "never"],

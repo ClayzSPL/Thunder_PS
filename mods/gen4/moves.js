@@ -488,7 +488,7 @@ let BattleMovedex = {
 		desc: "The target is unaffected by this move unless it is asleep and does not have a substitute. The user recovers 1/2 the HP lost by the target, rounded down, but not less than 1 HP. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded down.",
 		onTryHit: function (target) {
 			if (target.status !== 'slp' || target.volatiles['substitute']) {
-				this.add('-immune', target);
+				this.add('-immune', target, '[msg]');
 				return null;
 			}
 		},
@@ -517,13 +517,12 @@ let BattleMovedex = {
 			durationCallback: function () {
 				return this.random(4, 9);
 			},
-			onStart: function (target, source) {
+			onStart: function (target) {
 				let noEncore = ['encore', 'mimic', 'mirrormove', 'sketch', 'struggle', 'transform'];
 				let moveIndex = target.lastMove ? target.moves.indexOf(target.lastMove.id) : -1;
 				if (!target.lastMove || noEncore.includes(target.lastMove.id) || !target.moveSlots[moveIndex] || target.moveSlots[moveIndex].pp <= 0) {
 					// it failed
-					this.add('-fail', source);
-					this.attrLastMove('[still]');
+					this.add('-fail', target);
 					delete target.volatiles['encore'];
 					return;
 				}

@@ -184,6 +184,10 @@ let BattleScripts = {
 
 		let attrs = '';
 
+		if (move.flags['charge'] && !pokemon.volatiles[move.id]) {
+			attrs = '|[still]'; // suppress the default move animation
+		}
+
 		let movename = move.name;
 		if (move.id === 'hiddenpower') movename = 'Hidden Power';
 		if (sourceEffect) attrs += '|[from]' + this.getEffect(sourceEffect);
@@ -267,7 +271,7 @@ let BattleScripts = {
 					lacksTarget = !this.isAdjacent(target, pokemon);
 				}
 			}
-			if (lacksTarget && !move.isFutureMove) {
+			if (lacksTarget && (!move.flags['charge'] || pokemon.volatiles['twoturnmove']) && !move.isFutureMove) {
 				this.attrLastMove('[notarget]');
 				this.add('-notarget');
 				if (move.target === 'normal') pokemon.isStaleCon = 0;
@@ -298,10 +302,7 @@ let BattleScripts = {
 
 		let hitResult = this.singleEvent('PrepareHit', move, {}, target, pokemon, move);
 		if (!hitResult) {
-			if (hitResult === false) {
-				this.add('-fail', pokemon);
-				this.attrLastMove('[still]');
-			}
+			if (hitResult === false) this.add('-fail', target);
 			return false;
 		}
 		this.runEvent('PrepareHit', pokemon, target, move);
@@ -317,10 +318,7 @@ let BattleScripts = {
 				hitResult = this.runEvent('TryHitSide', target, pokemon, move);
 			}
 			if (!hitResult) {
-				if (hitResult === false) {
-					this.add('-fail', pokemon);
-					this.attrLastMove('[still]');
-				}
+				if (hitResult === false) this.add('-fail', target);
 				return false;
 			}
 			return this.moveHit(target, pokemon, move);
@@ -345,10 +343,7 @@ let BattleScripts = {
 
 		hitResult = this.runEvent('TryHit', target, pokemon, move);
 		if (!hitResult) {
-			if (hitResult === false) {
-				this.add('-fail', pokemon);
-				this.attrLastMove('[still]');
-			}
+			if (hitResult === false) this.add('-fail', target);
 			return false;
 		}
 
@@ -357,13 +352,13 @@ let BattleScripts = {
 		}
 		if (move.flags['powder'] && target !== pokemon && !this.getImmunity('powder', target)) {
 			this.debug('natural powder immunity');
-			this.add('-immune', target);
+			this.add('-immune', target, '[msg]');
 			return false;
 		}
 		if (this.gen >= 7 && move.pranksterBoosted && pokemon.hasAbility('prankster') && target.side !== pokemon.side && !this.getImmunity('prankster', target)) {
 			this.debug('natural prankster immunity');
 			if (!target.illusion) this.add('-hint', "In gen 7, Dark is immune to Prankster moves.");
-			this.add('-immune', target);
+			this.add('-immune', target, '[msg]');
 			return false;
 		}
 
@@ -615,10 +610,7 @@ let BattleScripts = {
 			hitResult = this.singleEvent('TryHit', moveData, {}, target, pokemon, move);
 		}
 		if (!hitResult) {
-			if (hitResult === false) {
-				this.add('-fail', pokemon);
-				this.attrLastMove('[still]');
-			}
+			if (hitResult === false) this.add('-fail', target);
 			return false;
 		}
 
@@ -663,8 +655,7 @@ let BattleScripts = {
 
 			if (damage === false || damage === null) {
 				if (damage === false && !isSecondary && !isSelf) {
-					this.add('-fail', pokemon);
-					this.attrLastMove('[still]');
+					this.add('-fail', target);
 				}
 				this.debug('damage calculation interrupted');
 				return false;
@@ -691,8 +682,7 @@ let BattleScripts = {
 			if (moveData.heal && !target.fainted) {
 				let d = target.heal((this.gen < 5 ? Math.floor : Math.round)(target.maxhp * moveData.heal[0] / moveData.heal[1]));
 				if (!d && d !== 0) {
-					this.add('-fail', pokemon);
-					this.attrLastMove('[still]');
+					this.add('-fail', target);
 					this.debug('heal interrupted');
 					return false;
 				}
@@ -773,10 +763,7 @@ let BattleScripts = {
 
 			if (!didSomething && !moveData.self && !moveData.selfdestruct) {
 				if (!isSelf && !isSecondary) {
-					if (didSomething === false) {
-						this.add('-fail', pokemon);
-						this.attrLastMove('[still]');
-					}
+					if (didSomething === false) this.add('-fail', pokemon);
 				}
 				this.debug('move failed because it did nothing');
 				return false;
@@ -808,8 +795,7 @@ let BattleScripts = {
 			if (hitResult) {
 				target.forceSwitchFlag = true;
 			} else if (hitResult === false && move.category === 'Status') {
-				this.add('-fail', pokemon);
-				this.attrLastMove('[still]');
+				this.add('-fail', target);
 				return false;
 			}
 		}

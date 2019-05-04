@@ -2,5 +2,11 @@ tournaments/lib/
 logs/
 dev-tools/globals.js
 node_modules/
-wavelength-plugins/shop-private.js
-chat-plugins/private.js
+custom-plugins/shop-private.js
+custom-plugins/tictactoe.js
+custom-plugins/eShop.js
+custom-plugins/passthebomb.js
+users.js
+custom-plugins/profile.js
+custom-plugins/misc.js
+config/formats.js

@@ -19,7 +19,6 @@ let BattleAliases = {
 	"bh": "[Gen 7] Balanced Hackmons",
 	"mnm": "[Gen 7] Mix and Mega",
 	"aaa": "[Gen 7] Almost Any Ability",
-	"pic": "[Gen 7] Partners in Crime",
 	"2v2": "[Gen 7] 2v2 Doubles",
 	"cc1v1": "[Gen 7] Challenge Cup 1v1",
 	"cc2v2": "[Gen 7] Challenge Cup 2v2",
@@ -28,13 +27,6 @@ let BattleAliases = {
 	"bf": "[Gen 7] Battle Factory",
 	"gen6bf": "[Gen 6] Battle Factory",
 	"ssb": "[Gen 7] Super Staff Bros Brawl",
-
-	// Wavelength
-	"digimon": "[Gen 7] Digimon Showdown",
-	"wssb": "[Gen 7] Super Staff Bros",
-	"wlssb": "[Gen 7] Super Staff Bros",
-	"ssbffa": "[Gen 7] Super Staff Bros Free For All",
-	"pmd": "[Gen 7] Pokemon Mystery Dungeon",
 
 	// mega evos
 	"fabio": "Ampharos-Mega",

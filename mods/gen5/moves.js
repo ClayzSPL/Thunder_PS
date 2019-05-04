@@ -883,7 +883,7 @@ let BattleMovedex = {
 				if (target !== source.volatiles['twoturnmove'].source) return false;
 
 				if (target.hasType('Flying')) {
-					this.add('-immune', target);
+					this.add('-immune', target, '[msg]');
 					this.add('-end', target, 'Sky Drop');
 					return null;
 				}
@@ -987,8 +987,7 @@ let BattleMovedex = {
 				}
 				let damage = this.getDamage(source, target, move);
 				if (!damage && damage !== 0) {
-					this.add('-fail', source);
-					this.attrLastMove('[still]');
+					this.add('-fail', target);
 					return null;
 				}
 				damage = this.runEvent('SubDamage', target, source, move, damage);

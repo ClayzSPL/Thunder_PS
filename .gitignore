@@ -1,16 +1,9 @@
-/config/*
-!/config/formats.js
-!/config/cards.json
-/logs/*
 /node_modules
 /eslint-cache
 /chat-plugins/private.js
 /chat-plugins/*-private.js
-/wavelength-plugins/*-private.js
-/wavelength-plugins/filter.js
 npm-debug.log
 .eslintcache
-package-lock.json
 
 # visual studio live share
 .vs
@@ -56,3 +49,4 @@ local_settings.py
 .svn
 
 pip-log.txt
+

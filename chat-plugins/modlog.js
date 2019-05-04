@@ -66,7 +66,6 @@ function checkRipgrepAvailability() {
 	if (Config.ripgrepmodlog === undefined) {
 		try {
 			execFileSync('rg', ['--version'], {cwd: path.normalize(`${__dirname}/../`)});
-			execFileSync('tac', ['--version'], {cwd: path.normalize(`${__dirname}/../`)});
 			Config.ripgrepmodlog = true;
 		} catch (error) {
 			Config.ripgrepmodlog = false;

@@ -317,13 +317,12 @@ let BattleMovedex = {
 			durationCallback: function () {
 				return this.random(3, 7);
 			},
-			onStart: function (target, source) {
+			onStart: function (target) {
 				let noEncore = ['encore', 'mimic', 'mirrormove', 'sketch', 'struggle', 'transform'];
 				let moveIndex = target.lastMove ? target.moves.indexOf(target.lastMove.id) : -1;
 				if (!target.lastMove || noEncore.includes(target.lastMove.id) || !target.moveSlots[moveIndex] || target.moveSlots[moveIndex].pp <= 0) {
 					// it failed
-					this.add('-fail', source);
-					this.attrLastMove('[still]');
+					this.add('-fail', target);
 					delete target.volatiles['encore'];
 					return;
 				}

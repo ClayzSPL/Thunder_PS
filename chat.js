@@ -14,6 +14,7 @@
  *
  * @license MIT license
  */
+
 /*
 
 To reload chat commands:
@@ -21,6 +22,7 @@ To reload chat commands:
 /hotpatch chat
 
 */
+
 'use strict';
 /** @typedef {GlobalRoom | GameRoom | ChatRoom} Room */
 
@@ -297,6 +299,7 @@ class CommandContext {
 		/** @type {any} */
 		let message = this.message;
 
+		let giveExp = false;
 		let commandHandler = this.splitCommand(message);
 
 		if (typeof commandHandler === 'function') {
@@ -325,29 +328,30 @@ class CommandContext {
 					message = message.charAt(0) + message;
 				}
 			}
+			
+			let lastMessageTime = this.user.lastMessageTime;
 			message = this.canTalk(message);
-			if (this.room && message && !this.room.battle && !this.room.isPersonal && !this.room.isPrivate) this.user.lastPublicMessage = Date.now();
+			if (message && Date.now() > (lastMessageTime + Config.expTimer)) giveExp = true;
 		}
 
 		// Output the message
-
 		if (message && message !== true && typeof message.then !== 'function') {
 			if (this.pmTarget) {
 				Chat.sendPM(message, this.user, this.pmTarget);
 			} else {
-				let emoticons = WL.parseEmoticons(message);
+				let emoticons = Server.parseEmoticons(message);
 				if (emoticons && !this.room.disableEmoticons) {
 					if (Users.ShadowBan.checkBanned(this.user)) {
 						Users.ShadowBan.addMessage(this.user, "To " + this.room.id, message);
-						if (!WL.ignoreEmotes[this.user.userid]) this.user.sendTo(this.room, (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') + this.user.getIdentity(this.room.id) + '|/html ' + emoticons);
-						if (WL.ignoreEmotes[this.user.userid]) this.user.sendTo(this.room, (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') + this.user.getIdentity(this.room.id) + '|' + message);
+						if (!Server.ignoreEmotes[this.user.userid]) this.user.sendTo(this.room, (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') + this.user.getIdentity(this.room.id) + '|/html ' + emoticons);
+						if (Server.ignoreEmotes[this.user.userid]) this.user.sendTo(this.room, (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') + this.user.getIdentity(this.room.id) + '|' + message);
 						this.room.update();
 						return false;
 					}
 					for (let u in this.room.users) {
 						let curUser = Users(u);
 						if (!curUser || !curUser.connected) continue;
-						if (WL.ignoreEmotes[curUser.userid]) {
+						if (Server.ignoreEmotes[curUser.userid]) {
 							curUser.sendTo(this.room, (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') + this.user.getIdentity(this.room.id) + '|' + message);
 							continue;
 						}
@@ -369,6 +373,7 @@ class CommandContext {
 			}
 		}
 
+		if (this.user.registered && giveExp) Server.ExpControl.addExp(this.user.userid, this.room, 1);
 		this.update();
 
 		return message;
@@ -401,8 +406,7 @@ class CommandContext {
 		if (cmdToken === message.charAt(1)) return;
 		if (cmdToken === BROADCAST_TOKEN && /[^A-Za-z0-9]/.test(message.charAt(1))) return;
 
-		let cmd = '',
-			target = '';
+		let cmd = '', target = '';
 
 		let spaceIndex = message.indexOf(' ');
 		if (spaceIndex > 0) {
@@ -805,13 +809,6 @@ class CommandContext {
 			const message = this.canTalk(suppressMessage || this.message);
 			if (!message) return false;
 
-			if (Users.ShadowBan.checkBanned(this.user)) {
-				Users.ShadowBan.addMessage(this.user, "To " + this.room.id, message);
-				this.user.sendTo(this.room, (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') + this.user.getIdentity(this.room.id) + '|' + message);
-				this.parse('/' + this.message.substr(1));
-				return false;
-			}
-
 			this.message = message;
 			this.broadcastMessage = broadcastMessage;
 		}
@@ -926,8 +923,7 @@ class CommandContext {
 			}
 			if (targetUser) {
 				if (lockType && !targetUser.can('lock')) {
-					this.errorReply(`You are ${lockType} and can only private message members of the global moderation team. ${lockExpiration}`);
-					return this.sendReply(`|html|<a href="view-help-request--appeal" class="button">Get help with this</a>`);
+					return this.errorReply(`You are ${lockType} and can only private message members of the global moderation team (users marked by @ or above in the Help room). ${lockExpiration}`);
 				}
 				if (targetUser.locked && !user.can('lock')) {
 					return this.errorReply(`The user "${targetUser.name}" is locked and cannot be PMed.`);
@@ -1239,11 +1235,19 @@ Chat.parse = function (message, room, user, connection) {
  * @param {User} pmTarget
  * @param {?User} onlyRecipient
  */
+/*Chat.sendPM = function (message, user, pmTarget, onlyRecipient = null) {
+	let buf = `|pm|${user.getIdentity()}|${pmTarget.getIdentity()}|${message}`;
+	if (onlyRecipient) return onlyRecipient.send(buf);
+	user.send(buf);
+	if (pmTarget !== user) pmTarget.send(buf);
+	pmTarget.lastPM = user.userid;
+	user.lastPM = pmTarget.userid;
+};*/
 Chat.sendPM = function (message, user, pmTarget, onlyRecipient = null) {
 	let noEmotes = message;
-	let emoticons = WL.parseEmoticons(message);
+	let emoticons = Server.parseEmoticons(message);
 	if (emoticons) message = "/html " + emoticons;
-	let buf = `|pm|${user.getIdentity()}|${pmTarget.getIdentity()}|${(WL.ignoreEmotes[user.userid] ? noEmotes : message)}`;
+	let buf = `|pm|${user.getIdentity()}|${pmTarget.getIdentity()}|${(Server.ignoreEmotes[user.userid] ? noEmotes : message)}`;
 	// TODO is onlyRecipient a user? If so we should check if they are ignoring emoticions.
 	if (onlyRecipient) return onlyRecipient.send(buf);
 	user.send(buf);
@@ -1321,6 +1325,7 @@ Chat.loadPlugins = function () {
 	if (Config.nicknamefilter) Chat.nicknamefilters.push(Config.nicknamefilter);
 
 	// Install plug-in commands and chat filters
+	Object.assign(commands, require('./console.js').commands);
 
 	// info always goes first so other plugins can shadow it
 	let files = FS('chat-plugins/').readdirSync();
@@ -1340,10 +1345,20 @@ Chat.loadPlugins = function () {
 		if (plugin.loginfilter) Chat.loginfilters.push(plugin.loginfilter);
 		if (plugin.nicknamefilter) Chat.nicknamefilters.push(plugin.nicknamefilter);
 	}
-	for (let file of FS('wavelength-plugins').readdirSync()) {
+	for (let file of FS('custom-plugins').readdirSync()) {
 		if (file.substr(-3) !== '.js') continue;
-		const wavelengthplugin = require(`./wavelength-plugins/${file}`);
-		Object.assign(commands, wavelengthplugin.commands);
+		const cp = require(`./custom-plugins/${file}`);
+		Object.assign(commands, cp.commands);
+	}
+	// SGgame
+	// Load games for Console
+	Server.gameList = {};
+	for (let file of FS('game-cards').readdirSync()) {
+		if (file.substr(-3) !== '.js') continue;
+		const gamecard = require(`./game-cards/${file}`);
+		Object.assign(commands, gamecard.commands);
+		if (gamecard.box && gamecard.box.name) gamecard.box.id = toId(gamecard.box.name);
+		Server.gameList[gamecard.box.id] = gamecard.box;
 	}
 };
 
@@ -1368,7 +1383,6 @@ Chat.stripHTML = function (html) {
 	if (!html) return '';
 	return html.replace(/<[^>]*>/g, '');
 };
-
 /**
  * Template string tag function for escaping HTML
  *
@@ -1725,25 +1739,10 @@ Chat.fitImage = async function (url, maxHeight = 300, maxWidth = 300) {
 	return [Math.round(width * ratio), Math.round(height * ratio)];
 };
 
-/**
- * Used by ChatMonitor.
- * @typedef {[(string | RegExp), string, string?, number]} FilterWord
- * @typedef {(this: CommandContext, line: FilterWord, room: ChatRoom, user: User, message: string, lcMessage: string, isStaff: boolean) => (string | false | undefined)} MonitorHandler
- * @typedef {{location: string, punishment: string, label: string, condition?: string, monitor?: MonitorHandler}} Monitor
- */
-
-/** @type {{[k: string]: FilterWord[]}} */
+// Used (and populated) by ChatMonitor.
+/** @type {{[k: string]: string[]}} */
+Chat.filterKeys = {};
+/** @type {{[k: string]: [(string | RegExp), string, string?, number][]}} */
 Chat.filterWords = {};
-/** @type {{[k: string]: Monitor}} */
-Chat.monitors = {};
 /** @type {Map<string, string>} */
 Chat.namefilterwhitelist = new Map();
-
-/**
- * @param {string} id
- * @param {Monitor} entry
- */
-Chat.registerMonitor = function (id, entry) {
-	if (!Chat.filterWords[id]) Chat.filterWords[id] = [];
-	Chat.monitors[id] = entry;
-};
